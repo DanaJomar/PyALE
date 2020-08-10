@@ -31,22 +31,22 @@ def cmds(D, k=2):
     return(ret)
 
 
-def order_groups(X, J):
+def order_groups(X, feature):
     """
-    Assign an order to the values of the feature J based on a distance matrix between
+    Assign an order to the values of the feature based on a distance matrix between
     the other variables/features in X
     """
     features = X.columns
-    groups = X[J].cat.categories.values
+    groups = X[feature].cat.categories.values
     D_cumu = pd.DataFrame(0, index=groups, columns=groups)
     K = len(groups)
-    for j in set(features) - set([J]):
+    for j in set(features) - set([feature]):
         D = pd.DataFrame(index=groups, columns=groups)
         # discrete/factor feature j
         # e.g. j = 'color'
         if (X[j].dtypes.name == 'category') | ((len(X[j].unique()) <= 10) & ('float' not in X[j].dtypes.name)):
-            # counts and proportions of each value in j in each group in J (the studied feature)
-            cross_counts = pd.crosstab(X[J], X[j])
+            # counts and proportions of each value in j in each group in 'feature' 
+            cross_counts = pd.crosstab(X[feature], X[j])
             cross_props = cross_counts.div(np.sum(cross_counts, axis=1), axis=0)
             for i  in range(K):
                 group = groups[i]
@@ -61,7 +61,7 @@ def order_groups(X, J):
             q_X_j = X[j].quantile(seq).to_list()
             # get the ecdf (empiricial cumulative distribution function)
             # compute the function from the data points in each group
-            X_ecdf = X.groupby(J)[j].agg(ECDF)
+            X_ecdf = X.groupby(feature)[j].agg(ECDF)
             # apply each of the functions on the quantiles
             # i.e. for each quantile value get the probability that j will take a value less than 
             # or equal to this value.
