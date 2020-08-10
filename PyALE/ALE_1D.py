@@ -29,9 +29,15 @@ def aleplot_1D_discrete(X, model, feature):
     groups = X[feature].unique()
     groups.sort()
     groups_codes = [x for x in range(len(groups))]
-    K = len(groups)
+    
     groups_counts = X.groupby(feature).size()
     groups_props = groups_counts/sum(groups_counts)
+    
+    K = len(groups)
+    
+    # create copies of the dataframe
+    X_plus = X.copy()
+    X_neg = X.copy()
     # all groups except last one
     ind_plus = X[feature] < groups[K-1]
     # all groups except first one
@@ -47,6 +53,7 @@ def aleplot_1D_discrete(X, model, feature):
     # compute prediction difference
     Delta_plus = y_hat_plus - y_hat[ind_plus]
     Delta_neg = y_hat[ind_neg] - y_hat_neg
+    
     # compute the mean of the difference per group
     res_df = pd.concat([pd.DataFrame({'Delta':Delta_plus, 'x':X.loc[ind_plus, feature] + 1}), 
                         pd.DataFrame({'Delta':Delta_neg, 'x':X.loc[ind_neg, feature]})])
