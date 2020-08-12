@@ -3,10 +3,11 @@ import pandas as pd
 
 def aleplot_1D_continuous(X, model, feature, grid_size = 40):
     quantiles = np.append(0, np.arange(1/grid_size, 1+1/grid_size, 1/grid_size))
-    # feat_cut, bins = pd.qcut(X[feature], quantiles, duplicates='drop', retbins=True, precision=1)
-    bins = np.round([min(X[feature])] + X[feature].quantile(quantiles).to_list(), 1)
+    # to have the max value as its own bin: add to the bins (max(value) + small value) 
+    # that way we'd have the effects up to the max value in the data
+    bins = [min(X[feature])] + X[feature].quantile(quantiles).to_list() + [max(X[feature]) + 0.1]
     bins = np.unique(bins)
-    feat_cut = pd.cut(X[feature], bins, include_lowest=True)
+    feat_cut = pd.cut(X[feature], bins, right=False, include_lowest=True)
     
     bin_codes = feat_cut.cat.codes
     bin_codes_unique = np.unique(bin_codes)
@@ -18,7 +19,7 @@ def aleplot_1D_continuous(X, model, feature, grid_size = 40):
     y_1 = model.predict(X1)
     y_2 = model.predict(X2)
     
-    res_df = pd.DataFrame({'x':X1[feature], 'Delta':y_2 - y_1})
+    res_df = pd.DataFrame({'x':bins[bin_codes], 'Delta':y_2 - y_1})
     res_df = res_df.groupby(['x']).Delta.agg(['size', 'mean'])
     res_df['eff'] = res_df['mean'].cumsum()
     res_df = res_df.assign(eff = lambda df: df['eff'].shift(1, fill_value=0) - ((df['eff'] + df['eff'].shift(1, fill_value=0))/2 * df['size']).sum()/df['size'].sum())
