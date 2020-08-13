@@ -1,13 +1,15 @@
 import numpy as np
 import pandas as pd
 
+from lib import quantile_ied
+
 def aleplot_1D_continuous(X, model, feature, grid_size = 40):
     quantiles = np.append(0, np.arange(1/grid_size, 1+1/grid_size, 1/grid_size))
-    # to have the max value as its own bin: add to the bins (max(value) + small value) 
-    # that way we'd have the effects up to the max value in the data
-    bins = [min(X[feature])] + X[feature].quantile(quantiles).to_list() + [max(X[feature]) + 0.1]
+    # use customized quantile function to get the same result as 
+    # type 1 R quantile (Inverse of empirical distribution function)
+    bins = [X[feature].min()] + quantile_ied(X[feature], quantiles).to_list()
     bins = np.unique(bins)
-    feat_cut = pd.cut(X[feature], bins, right=False, include_lowest=True)
+    feat_cut = pd.cut(X[feature], bins, include_lowest=True)
     
     bin_codes = feat_cut.cat.codes
     bin_codes_unique = np.unique(bin_codes)
@@ -19,10 +21,12 @@ def aleplot_1D_continuous(X, model, feature, grid_size = 40):
     y_1 = model.predict(X1)
     y_2 = model.predict(X2)
     
-    res_df = pd.DataFrame({'x':bins[bin_codes], 'Delta':y_2 - y_1})
+    res_df = pd.DataFrame({'x':bins[bin_codes+1], 'Delta':y_2 - y_1})
     res_df = res_df.groupby(['x']).Delta.agg(['size', 'mean'])
     res_df['eff'] = res_df['mean'].cumsum()
-    res_df = res_df.assign(eff = lambda df: df['eff'].shift(1, fill_value=0) - ((df['eff'] + df['eff'].shift(1, fill_value=0))/2 * df['size']).sum()/df['size'].sum())
+    res_df.loc[min(bins), :] = 0
+    # subtract the total average of a moving average of size 2
+    res_df = res_df.sort_index().assign(eff = lambda df: df['eff'] - ((df['eff'] + df['eff'].shift(1, fill_value=0))/2 * df['size']).sum()/df['size'].sum())
     return(res_df['eff'])
 
 
