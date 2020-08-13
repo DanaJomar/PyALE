@@ -79,3 +79,28 @@ def order_groups(X, feature):
     order_idx = D1D.argsort()
     groups_ordered = D_cumu.index[D1D.argsort()]
     return(pd.Series(range(K), index=groups_ordered))
+
+def quantile_ied(x_vec, q):
+    """
+    Inverse of empirical distribution function.
+    
+    https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.mstats.mquantiles.html    
+    https://en.wikipedia.org/wiki/Quantile
+    https://stat.ethz.ch/R-manual/R-devel/library/stats/html/quantile.html
+    """
+    # q = q[q!=0]
+    x_vec = x_vec.sort_values()
+    n = len(x_vec) - 1
+    m = 0 
+    j = (n*q + m).astype(int)# location of the value 
+    g = n*q + m - j
+    
+    gamma = (g!=0).astype(int)
+    quant_res = (1-gamma)*x_vec.shift(1, fill_value=0).iloc[j] + gamma*x_vec.iloc[j]
+    quant_res.index = q
+    # add min at quantile zero and max at quantile one (if needed)
+    if(0 in q):
+        quant_res.loc[0] = x_vec.min()
+    if(1 in q):
+        quant_res.loc[1] = x_vec.max()
+    return(quant_res)
