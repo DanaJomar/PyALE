@@ -102,4 +102,4 @@ def plot_1D_continuous_eff(ale_res):
         alpha=0.2,
         transform=tr,
     )
-    return (fig, ax)
+    return fig, ax
