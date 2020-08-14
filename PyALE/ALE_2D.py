@@ -8,15 +8,15 @@ from lib import quantile_ied
 
 def aleplot_2D_continuous(X, model, features, grid_size=40):
     quantiles = np.append(0, np.arange(1 / grid_size, 1 + 1 / grid_size, 1 / grid_size))
-    bins_0 = [X[feature[0]].min()] + quantile_ied(X[feature[0]], quantiles).to_list()
+    bins_0 = [X[features[0]].min()] + quantile_ied(X[features[0]], quantiles).to_list()
     bins_0 = np.unique(bins_0)
-    feat_cut_0 = pd.cut(X[feature[0]], bins_0, include_lowest=True)
+    feat_cut_0 = pd.cut(X[features[0]], bins_0, include_lowest=True)
     bin_codes_0 = feat_cut_0.cat.codes
     bin_codes_unique_0 = np.unique(bin_codes_0)
 
-    bins_1 = [X[feature[1]].min()] + quantile_ied(X[feature[1]], quantiles).to_list()
+    bins_1 = [X[features[1]].min()] + quantile_ied(X[features[1]], quantiles).to_list()
     bins_1 = np.unique(bins_1)
-    feat_cut_1 = pd.cut(X[feature[1]], bins_1, include_lowest=True)
+    feat_cut_1 = pd.cut(X[features[1]], bins_1, include_lowest=True)
     bin_codes_1 = feat_cut_1.cat.codes
     bin_codes_unique_1 = np.unique(bin_codes_1)
 
@@ -25,28 +25,28 @@ def aleplot_2D_continuous(X, model, features, grid_size=40):
     X21 = X.copy()
     X22 = X.copy()
 
-    X11[feature] = pd.DataFrame(
+    X11[features] = pd.DataFrame(
         {
-            feature[0]: [bins_0[i] for i in bin_codes_0],
-            feature[1]: [bins_1[i] for i in bin_codes_1],
+            features[0]: [bins_0[i] for i in bin_codes_0],
+            features[1]: [bins_1[i] for i in bin_codes_1],
         }
     )
-    X12[feature] = pd.DataFrame(
+    X12[features] = pd.DataFrame(
         {
-            feature[0]: [bins_0[i] for i in bin_codes_0],
-            feature[1]: [bins_1[i + 1] for i in bin_codes_1],
+            features[0]: [bins_0[i] for i in bin_codes_0],
+            features[1]: [bins_1[i + 1] for i in bin_codes_1],
         }
     )
-    X21[feature] = pd.DataFrame(
+    X21[features] = pd.DataFrame(
         {
-            feature[0]: [bins_0[i + 1] for i in bin_codes_0],
-            feature[1]: [bins_1[i] for i in bin_codes_1],
+            features[0]: [bins_0[i + 1] for i in bin_codes_0],
+            features[1]: [bins_1[i] for i in bin_codes_1],
         }
     )
-    X22[feature] = pd.DataFrame(
+    X22[features] = pd.DataFrame(
         {
-            feature[0]: [bins_0[i + 1] for i in bin_codes_0],
-            feature[1]: [bins_1[i + 1] for i in bin_codes_1],
+            features[0]: [bins_0[i + 1] for i in bin_codes_0],
+            features[1]: [bins_1[i + 1] for i in bin_codes_1],
         }
     )
 
@@ -57,16 +57,16 @@ def aleplot_2D_continuous(X, model, features, grid_size=40):
 
     delta_df = pd.DataFrame(
         {
-            feature[0]: bin_codes_0 + 1,
-            feature[1]: bin_codes_1 + 1,
+            features[0]: bin_codes_0 + 1,
+            features[1]: bin_codes_1 + 1,
             "Delta": (y_22 - y_21) - (y_12 - y_11),
         }
     )
     index_combinations = pd.MultiIndex.from_product(
-        [bin_codes_unique_0 + 1, bin_codes_unique_1 + 1], names=feature
+        [bin_codes_unique_0 + 1, bin_codes_unique_1 + 1], names=features
     )
 
-    delta_df = delta_df.groupby([feature[0], feature[1]]).Delta.agg(["size", "mean"])
+    delta_df = delta_df.groupby([features[0], features[1]]).Delta.agg(["size", "mean"])
 
     sizes_df = delta_df["size"].reindex(index_combinations, fill_value=0)
     sizes_0 = sizes_df.groupby(level=0).sum().reindex(range(len(bins_0)), fill_value=0)
@@ -90,17 +90,17 @@ def aleplot_2D_continuous(X, model, features, grid_size=40):
 
         feats_at_na = pd.DataFrame(
             {
-                feature[0]: (bins_0[feat0_code_na - 1] + bins_0[feat0_code_na])
+                features[0]: (bins_0[feat0_code_na - 1] + bins_0[feat0_code_na])
                 / (2 * range0),
-                feature[1]: (bins_1[feat1_code_na - 1] + bins_1[feat1_code_na])
+                features[1]: (bins_1[feat1_code_na - 1] + bins_1[feat1_code_na])
                 / (2 * range1),
             }
         )
         feats_at_notna = pd.DataFrame(
             {
-                feature[0]: (bins_0[feat0_code_notna - 1] + bins_0[feat0_code_notna])
+                features[0]: (bins_0[feat0_code_notna - 1] + bins_0[feat0_code_notna])
                 / (2 * range0),
-                feature[1]: (bins_1[feat1_code_notna - 1] + bins_1[feat1_code_notna])
+                features[1]: (bins_1[feat1_code_notna - 1] + bins_1[feat1_code_notna])
                 / (2 * range1),
             }
         )
@@ -149,7 +149,7 @@ def aleplot_2D_continuous(X, model, features, grid_size=40):
 
     all_combinations = pd.MultiIndex.from_product(
         [[x for x in range(len(bins_0))], [x for x in range(len(bins_1))]],
-        names=feature,
+        names=features,
     )
     eff_df = eff_df.reindex(all_combinations, fill_value=0)
     eff_df = eff_df.subtract(fJ0, level=0).subtract(fJ1, level=1)
