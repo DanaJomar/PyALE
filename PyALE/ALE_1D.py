@@ -24,8 +24,8 @@ def aleplot_1D_continuous(X, model, feature, grid_size=40):
     y_1 = model.predict(X1)
     y_2 = model.predict(X2)
 
-    res_df = pd.DataFrame({"x": bins[bin_codes + 1], "Delta": y_2 - y_1})
-    res_df = res_df.groupby(["x"]).Delta.agg(["size", ("eff", "mean")])
+    res_df = pd.DataFrame({feature: bins[bin_codes + 1], "Delta": y_2 - y_1})
+    res_df = res_df.groupby([feature]).Delta.agg(["size", ("eff", "mean")])
     res_df["eff"] = res_df["eff"].cumsum()
     res_df.loc[min(bins), :] = 0
     # subtract the total average of a moving average of size 2
@@ -68,11 +68,11 @@ def aleplot_1D_discrete(X, model, feature):
     # compute the mean of the difference per group
     res_df = pd.concat(
         [
-            pd.DataFrame({"Delta": Delta_plus, "x": X.loc[ind_plus, feature] + 1}),
-            pd.DataFrame({"Delta": Delta_neg, "x": X.loc[ind_neg, feature]}),
+            pd.DataFrame({"Delta": Delta_plus, feature: X.loc[ind_plus, feature] + 1}),
+            pd.DataFrame({"Delta": Delta_neg, feature: X.loc[ind_neg, feature]}),
         ]
     )
-    res_df = res_df.groupby(["x"]).mean()
+    res_df = res_df.groupby([feature]).mean()
     res_df["eff"] = res_df["Delta"].cumsum()
     res_df.loc[0] = 0
     res_df = res_df.sort_index()
@@ -80,10 +80,9 @@ def aleplot_1D_discrete(X, model, feature):
     return res_df
 
 
-def plot_1D_continuous_eff(ale_res):
+def plot_1D_continuous_eff(res_df):
     rug = [
-        [ale_res.index[i]] * int(ale_res["size"].iloc[i])
-        for i in range(ale_res.shape[0])
+        [res_df.index[i]] * int(res_df["size"].iloc[i]) for i in range(res_df.shape[0])
     ]
     rug = [x for y in rug for x in y]
     random.seed(123)
@@ -92,14 +91,17 @@ def plot_1D_continuous_eff(ale_res):
     ]
 
     fig, ax = plt.subplots(figsize=(8, 4))
-    ax.plot(ale_res[["eff"]])
+    ax.plot(res_df[["eff"]])
     tr = mtrans.offset_copy(ax.transData, fig=fig, x=0.0, y=-5, units="points")
     ax.plot(
         rug,
-        (ale_res[["eff"]].min()).to_list() * len(rug),
+        (res_df[["eff"]].min()).to_list() * len(rug),
         "|",
         color="k",
         alpha=0.2,
         transform=tr,
     )
+    ax.set_xlabel(res_df.index.name)
+    ax.set_ylabel("Effect on prediction (centered)")
+    fig.suptitle("1D ALE Plot")
     return fig, ax
