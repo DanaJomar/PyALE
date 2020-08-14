@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 
+import matplotlib.pyplot as plt
 from sklearn.neighbors import NearestNeighbors
 
 from lib import quantile_ied
@@ -194,3 +195,19 @@ def aleplot_2D_continuous(X, model, features, grid_size=40):
     eff_grid = eff_df.pivot_table(columns=features[1], values="eff", index=features[0])
 
     return eff_grid
+
+
+def plot_2D_continuous_eff(eff_grid):
+    X, Y = np.meshgrid(eff_grid.columns, eff_grid.index)
+    fig, ax = plt.subplots()
+    im = ax.imshow(
+        eff_grid, origin="lower", extent=[X.min(), X.max(), Y.min(), Y.max()]
+    )
+    imc = ax.contour(X, Y, eff_grid, colors="black")
+    ax.clabel(imc, imc.levels, inline=True, fontsize=10)
+    ax.set_xlabel(eff_grid.columns.name)
+    ax.set_ylabel(eff_grid.index.name)
+    fig.suptitle("2D ALE Plot")
+    cbar = fig.colorbar(im, ax=ax)
+    cbar.ax.set_ylabel("Effect on prediction", rotation=270, labelpad=25)
+    return fig, ax
