@@ -1,2 +1,0 @@
-from PyALE.ALE_1D import aleplot_1D_continuous, aleplot_1D_discrete, plot_1D_continuous_eff
-from PyALE.ALE_2D import aleplot_2D_continuous, plot_2D_continuous_eff
