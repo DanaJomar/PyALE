@@ -3,7 +3,9 @@ from statsmodels.distributions.empirical_distribution import ECDF
 
 
 def cmds(D, k=2):
-    """
+    """Classical multidimensional scaling
+    
+    Theory and code references:
     https://en.wikipedia.org/wiki/Multidimensional_scaling#Classical_multidimensional_scaling
     http://www.nervouscomputer.com/hfs/cmdscale-in-python/
     """
@@ -26,16 +28,24 @@ def cmds(D, k=2):
     idx = np.argsort(eigenvals)[::-1]
     eigenvals = eigenvals[idx]
     eigenvecs = eigenvecs[:, idx]
-    # (4) Now, X=eigenvecs.dot(eigen_sqrt_diag), where eigen_sqrt_diag = diag(sqrt(eigenvals))
+    # (4) Now, X=eigenvecs.dot(eigen_sqrt_diag), 
+    # where eigen_sqrt_diag = diag(sqrt(eigenvals))
     eigen_sqrt_diag = np.diag(np.sqrt(eigenvals[0:k]))
     ret = eigenvecs[:, 0:k].dot(eigen_sqrt_diag)
     return ret
 
 
 def order_groups(X, feature):
-    """
-    Assign an order to the values of the feature based on a distance matrix between
-    the other variables/features in X
+    """Assign an order to the values of a categorical feature. 
+    
+    The function returns an order to the unique values in X[feature] according to 
+    their similarity based on the other features.
+    The distance between two categories is the sum over the distances of each feature.
+    
+    Arguments:
+    X -- A pandas DataFrame containing all the features to considering in the ordering 
+    (including the categorical feature to be ordered).
+    feature -- String, the name of the column holding the categorical feature to be ordered.
     """
     features = X.columns
     groups = X[feature].cat.categories.values
@@ -58,7 +68,7 @@ def order_groups(X, feature):
                 D.loc[:, group] = D_values
         else:
             # continuous feature j
-            # e.g. j = 'carat'
+            # e.g. j = 'length'
             # extract the 1/100 quantiles of the feature j
             seq = np.arange(0, 1, 1 / 100)
             q_X_j = X[j].quantile(seq).to_list()
@@ -66,9 +76,8 @@ def order_groups(X, feature):
             # compute the function from the data points in each group
             X_ecdf = X.groupby(feature)[j].agg(ECDF)
             # apply each of the functions on the quantiles
-            # i.e. for each quantile value get the probability that j will take a value less than
-            # or equal to this value.
-            q_ecdf = pd.DataFrame()
+            # i.e. for each quantile value get the probability that j will take 
+            # a value less than or equal to this value.
             q_ecdf = X_ecdf.apply(lambda x: x(q_X_j))
             for i in range(K):
                 group = groups[i]
@@ -86,13 +95,13 @@ def order_groups(X, feature):
 
 def quantile_ied(x_vec, q):
     """
-    Inverse of empirical distribution function.
+    Inverse of empirical distribution function (R type 1).
     
-    https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.mstats.mquantiles.html    
+    More details in
+    https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.mstats.mquantiles.html
+    https://stat.ethz.ch/R-manual/R-devel/library/stats/html/quantile.html    
     https://en.wikipedia.org/wiki/Quantile
-    https://stat.ethz.ch/R-manual/R-devel/library/stats/html/quantile.html
     """
-    # q = q[q!=0]
     x_vec = x_vec.sort_values()
     n = len(x_vec) - 1
     m = 0
