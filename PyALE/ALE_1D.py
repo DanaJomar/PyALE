@@ -7,6 +7,22 @@ from lib import quantile_ied
 
 
 def aleplot_1D_continuous(X, model, feature, grid_size=40):
+    """Compute the accumulated local effect of a numeric continuous feature.
+    
+    This function divides the feature in question into grid_size intervals (bins) 
+    and computes the difference in prediction between the first and last value 
+    of each interval and then centers the results.
+
+    Arguments:
+    X -- A pandas DataFrame to pass to the model for prediction.
+    model -- Any python model with a predict method that accepts X as input.
+    feature -- String, the name of the column holding the feature being studied.
+    grid_size -- An integer indicating the number of intervals into which the 
+    feature range is divided.
+    
+    Return: A pandas DataFrame containing for each bin: the size of the sample in it
+    and the accumulated centered effect of this bin.
+    """
     quantiles = np.append(0, np.arange(1 / grid_size, 1 + 1 / grid_size, 1 / grid_size))
     # use customized quantile function to get the same result as
     # type 1 R quantile (Inverse of empirical distribution function)
@@ -37,6 +53,20 @@ def aleplot_1D_continuous(X, model, feature, grid_size=40):
 
 
 def aleplot_1D_discrete(X, model, feature):
+    """Compute the accumulated local effect of a numeric discrete feature.
+    
+    This function computes the difference in prediction when the value of the feature
+    is replaced once with the value before it and once with the value after it, without 
+    the need to divide into interval like the case of aleplot_1D_continuous.
+
+    Arguments:
+    X -- A pandas DataFrame to pass to the model for prediction.
+    model -- Any python model with a predict method that accepts X as input.
+    feature -- String, the name of the column holding the feature being studied.
+    
+    Return: A pandas DataFrame containing for each value of the feature: the size 
+    of the sample in it and the accumulated centered effect around this value.
+    """
     groups = X[feature].unique()
     groups.sort()
     groups_codes = [x for x in range(len(groups))]
@@ -81,6 +111,12 @@ def aleplot_1D_discrete(X, model, feature):
 
 
 def plot_1D_continuous_eff(res_df):
+    """Plot the 1D ALE plot.
+    
+    Arguments:
+    res_df -- A pandas DataFrame containing the computed effects 
+    (the output of ale_1D_continuous).
+    """
     rug = [
         [res_df.index[i]] * int(res_df["size"].iloc[i]) for i in range(res_df.shape[0])
     ]
