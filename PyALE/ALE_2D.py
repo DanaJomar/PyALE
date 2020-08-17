@@ -8,6 +8,23 @@ from lib import quantile_ied
 
 
 def aleplot_2D_continuous(X, model, features, grid_size=40):
+      """Compute the two dimentional accumulated local effect of a two numeric continuous features.
+    
+    This function divides the space of the two features into a grid of size
+    grid_size*grid_size and computes the difference in prediction between the four
+    edges (corners) of each bin in the grid and then centers the results.
+
+    Arguments:
+    X -- A pandas DataFrame to pass to the model for prediction.
+    model -- Any python model with a predict method that accepts X as input.
+    features -- A list of twos strings indicating the names of the columns 
+    holding the features in question.
+    grid_size -- An integer indicating the number of intervals into which each 
+    feature range is divided.
+    
+    Return: A pandas DataFrame containing for each bin in the grid 
+    the accumulated centered effect of this bin.
+    """
     quantiles = np.append(0, np.arange(1 / grid_size, 1 + 1 / grid_size, 1 / grid_size))
     bins_0 = [X[features[0]].min()] + quantile_ied(X[features[0]], quantiles).to_list()
     bins_0 = np.unique(bins_0)
@@ -198,6 +215,12 @@ def aleplot_2D_continuous(X, model, features, grid_size=40):
 
 
 def plot_2D_continuous_eff(eff_grid):
+    """Plot the 1D ALE plot.
+    
+    Arguments:
+    eff_grid -- A pandas DataFrame containing the computed effects of two features
+    (the output of ale_2D_continuous).
+    """
     X, Y = np.meshgrid(eff_grid.columns, eff_grid.index)
     fig, ax = plt.subplots()
     im = ax.imshow(
