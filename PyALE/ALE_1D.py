@@ -112,24 +112,25 @@ def aleplot_1D_discrete(X, model, feature):
     return res_df
 
 
-def plot_1D_continuous_eff(res_df):
-    """Plot the 1D ALE plot.
+def plot_1D_continuous_eff(res_df, X, fig=None, ax=None):
+    """Plot the 1D ALE plot for a continuous feature.
     
     Arguments:
     res_df -- A pandas DataFrame containing the computed effects 
     (the output of ale_1D_continuous).
+    X -- The dataset used to compute the effects.
     """
-
-    rug = [
-        [res_df.index[i]] * int(res_df["size"].iloc[i]) for i in range(res_df.shape[0])
-    ]
-    rug = [x for y in rug for x in y]
+    
+    feature_name = res_df.index.name
+    rug = X[feature_name]
+    # position: jitter
     random.seed(123)
     rug = [
         sum(x) for x in zip(rug, [random.uniform(-0.05, 0.05) for x in range(len(rug))])
     ]
-
-    fig, ax = plt.subplots(figsize=(8, 4))
+    
+    if (fig is None and ax is None):
+      fig, ax = plt.subplots(figsize=(8, 4))
     ax.plot(res_df[["eff"]])
     tr = mtrans.offset_copy(ax.transData, fig=fig, x=0.0, y=-5, units="points")
     ax.plot(
@@ -142,5 +143,25 @@ def plot_1D_continuous_eff(res_df):
     )
     ax.set_xlabel(res_df.index.name)
     ax.set_ylabel("Effect on prediction (centered)")
-    fig.suptitle("1D ALE Plot")
+    ax.set_title("1D ALE Plot - Continuous")
+    return fig, ax
+
+
+def plot_1D_discrete_eff(res_df, X, fig=None, ax=None):
+    """Plot the 1D ALE plot for a discrete feature.
+    
+    Arguments:
+    res_df -- A pandas DataFrame with the computed effects
+    (the output of ale_1D_discrete).
+    X -- The dataset used to compute the effects.
+    """
+    
+    feature_name = res_df.index.name
+    if (fig is None and ax is None):
+      fig, ax = plt.subplots(figsize=(8, 4))
+    ax.bar(res_df.index, res_df["eff"], alpha=0.2)
+    
+    ax.set_xlabel(feature_name)
+    ax.set_ylabel("Effect on prediction (centered)")
+    ax.set_title("1D ALE Plot - Discrete/Categorical")
     return fig, ax
