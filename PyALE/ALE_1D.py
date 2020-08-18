@@ -119,6 +119,7 @@ def plot_1D_continuous_eff(res_df, X, fig=None, ax=None):
     res_df -- A pandas DataFrame containing the computed effects 
     (the output of ale_1D_continuous).
     X -- The dataset used to compute the effects.
+    fig, ax -- matplotlib figure and axis.
     """
     
     feature_name = res_df.index.name
@@ -154,6 +155,7 @@ def plot_1D_discrete_eff(res_df, X, fig=None, ax=None):
     res_df -- A pandas DataFrame with the computed effects
     (the output of ale_1D_discrete).
     X -- The dataset used to compute the effects.
+    fig, ax -- matplotlib figure and axis.
     """
     
     feature_name = res_df.index.name
