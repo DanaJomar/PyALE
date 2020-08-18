@@ -214,21 +214,25 @@ def aleplot_2D_continuous(X, model, features, grid_size=40):
     return eff_grid
 
 
-def plot_2D_continuous_eff(eff_grid):
+def plot_2D_continuous_eff(eff_grid, contour=True, fig=None, ax=None):
     """Plot the 1D ALE plot.
     
     Arguments:
     eff_grid -- A pandas DataFrame containing the computed effects of two features
     (the output of ale_2D_continuous).
+    contour -- A boolean indicating if the heatmap should have labeled contours over it.
+    fig, ax -- matplotlib figure and axis.
     """
 
     X, Y = np.meshgrid(eff_grid.columns, eff_grid.index)
-    fig, ax = plt.subplots()
+    if (fig is None and ax is None):
+      fig, ax = plt.subplots()
     im = ax.imshow(
         eff_grid, origin="lower", extent=[X.min(), X.max(), Y.min(), Y.max()]
     )
-    imc = ax.contour(X, Y, eff_grid, colors="black")
-    ax.clabel(imc, imc.levels, inline=True, fontsize=10)
+    if contour :
+        imc = ax.contour(X, Y, eff_grid, colors="black")
+        ax.clabel(imc, imc.levels, inline=True, fontsize=10)
     ax.set_xlabel(eff_grid.columns.name)
     ax.set_ylabel(eff_grid.index.name)
     fig.suptitle("2D ALE Plot")
