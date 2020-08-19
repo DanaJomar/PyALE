@@ -6,6 +6,7 @@ from sklearn.neighbors import NearestNeighbors
 
 from PyALE.lib import quantile_ied
 
+
 def aleplot_2D_continuous(X, model, features, grid_size=40):
     """Compute the two dimentional accumulated local effect of a two numeric continuous features.
     
@@ -135,7 +136,7 @@ def aleplot_2D_continuous(X, model, features, grid_size=40):
     eff_df = eff_df.groupby(level=0).cumsum().groupby(level=1).cumsum()
 
     # ============== centering with the moving average ================= #
-    # subtract the cumulative sum of the 1D moving average (for each axis)
+    # subtract the cumulative sum of the mean of 1D moving average (for each axis)
     eff_df_0 = eff_df - eff_df.groupby(level=1).shift(periods=1, axis=0, fill_value=0)
     fJ0 = (
         (
@@ -225,12 +226,12 @@ def plot_2D_continuous_eff(eff_grid, contour=True, fig=None, ax=None):
     """
 
     X, Y = np.meshgrid(eff_grid.columns, eff_grid.index)
-    if (fig is None and ax is None):
-      fig, ax = plt.subplots()
+    if fig is None and ax is None:
+        fig, ax = plt.subplots()
     im = ax.imshow(
         eff_grid, origin="lower", extent=[X.min(), X.max(), Y.min(), Y.max()]
     )
-    if contour :
+    if contour:
         imc = ax.contour(X, Y, eff_grid, colors="black")
         ax.clabel(imc, imc.levels, inline=True, fontsize=10)
     ax.set_xlabel(eff_grid.columns.name)
