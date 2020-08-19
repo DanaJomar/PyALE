@@ -6,6 +6,7 @@ import matplotlib.transforms as mtrans
 
 from PyALE.lib import quantile_ied
 
+
 def aleplot_1D_continuous(X, model, feature, grid_size=40):
     """Compute the accumulated local effect of a numeric continuous feature.
     
@@ -121,17 +122,25 @@ def plot_1D_continuous_eff(res_df, X, fig=None, ax=None):
     X -- The dataset used to compute the effects.
     fig, ax -- matplotlib figure and axis.
     """
-    
+
     feature_name = res_df.index.name
     rug = X[feature_name]
     # position: jitter
-    random.seed(123)
-    rug = [
-        sum(x) for x in zip(rug, [random.uniform(-0.05, 0.05) for x in range(len(rug))])
+    jitter_max_step_per_bin = (res_df.index - res_df.index.to_series().shift(1)) * 0.3
+    jitter_max_step = jitter_max_step_per_bin.iloc[
+        (
+            pd.cut(
+                X[feature_name], res_df.index.to_list(), include_lowest=True
+            ).cat.codes
+            + 1
+        ).to_list()
     ]
-    
-    if (fig is None and ax is None):
-      fig, ax = plt.subplots(figsize=(8, 4))
+
+    random.seed(123)
+    rug = [x + random.uniform(-y, y) for x, y in zip(rug, jitter_max_step)]
+
+    if fig is None and ax is None:
+        fig, ax = plt.subplots(figsize=(8, 4))
     ax.plot(res_df[["eff"]])
     tr = mtrans.offset_copy(ax.transData, fig=fig, x=0.0, y=-5, units="points")
     ax.plot(
@@ -157,12 +166,12 @@ def plot_1D_discrete_eff(res_df, X, fig=None, ax=None):
     X -- The dataset used to compute the effects.
     fig, ax -- matplotlib figure and axis.
     """
-    
+
     feature_name = res_df.index.name
-    if (fig is None and ax is None):
-      fig, ax = plt.subplots(figsize=(8, 4))
+    if fig is None and ax is None:
+        fig, ax = plt.subplots(figsize=(8, 4))
     ax.bar(res_df.index, res_df["eff"], alpha=0.2)
-    
+
     ax.set_xlabel(feature_name)
     ax.set_ylabel("Effect on prediction (centered)")
     ax.set_title("1D ALE Plot - Discrete/Categorical")
