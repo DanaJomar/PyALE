@@ -1,5 +1,6 @@
 import numpy as np
 from statsmodels.distributions.empirical_distribution import ECDF
+from scipy.stats import t
 
 
 def cmds(D, k=2):
@@ -97,7 +98,7 @@ def order_groups(X, feature):
 
 def quantile_ied(x_vec, q):
     """
-    Inverse of empirical distribution function (R type 1).
+    Inverse of empirical distribution function (quantile R type 1).
     
     More details in
     https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.mstats.mquantiles.html
@@ -122,3 +123,17 @@ def quantile_ied(x_vec, q):
     if 1 in q:
         quant_res.loc[1] = x_vec.max()
     return quant_res
+
+
+def CI_estimate(data, C=0.95):
+    """Estimate the size of the confidence interval of a data sample.
+    
+    The confidence interval of the given data sample is 
+    [mean(data) - returned value, mean(data) + returned value].
+    """
+    alpha = 1 - C
+    n = len(data)
+    stand_err = data.std() / np.sqrt(n)
+    critical_val = 1 - (alpha / 2)
+    z_star = stand_err * t.ppf(critical_val, n - 1)
+    return z_star
