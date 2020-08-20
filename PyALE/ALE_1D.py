@@ -4,10 +4,9 @@ import random
 import matplotlib.pyplot as plt
 import matplotlib.transforms as mtrans
 
-from PyALE.lib import quantile_ied
+from PyALE.lib import quantile_ied, CI_estimate
 
-
-def aleplot_1D_continuous(X, model, feature, grid_size=40):
+def aleplot_1D_continuous(X, model, feature, grid_size=40, include_CI=True, C=0.95):
     """Compute the accumulated local effect of a numeric continuous feature.
     
     This function divides the feature in question into grid_size intervals (bins) 
@@ -20,6 +19,9 @@ def aleplot_1D_continuous(X, model, feature, grid_size=40):
     feature -- String, the name of the column holding the feature being studied.
     grid_size -- An integer indicating the number of intervals into which the 
     feature range is divided.
+    include_CI -- A boolean, if True the confidence interval 
+    of the effect is returned with the results. 
+    C -- A float indicating the soze of the confidence interval
     
     Return: A pandas DataFrame containing for each bin: the size of the sample in it
     and the accumulated centered effect of this bin.
@@ -42,8 +44,8 @@ def aleplot_1D_continuous(X, model, feature, grid_size=40):
     y_1 = model.predict(X1)
     y_2 = model.predict(X2)
 
-    res_df = pd.DataFrame({feature: bins[bin_codes + 1], "Delta": y_2 - y_1})
-    res_df = res_df.groupby([feature]).Delta.agg(["size", ("eff", "mean")])
+    delta_df = pd.DataFrame({feature: bins[bin_codes + 1], "Delta": y_2 - y_1})
+    res_df = delta_df.groupby([feature]).Delta.agg(["size", ("eff", "mean")])
     res_df["eff"] = res_df["eff"].cumsum()
     res_df.loc[min(bins), :] = 0
     # subtract the total average of a moving average of size 2
@@ -51,6 +53,18 @@ def aleplot_1D_continuous(X, model, feature, grid_size=40):
         (res_df["eff"] + res_df["eff"].shift(1, fill_value=0)) / 2 * res_df["size"]
     ).sum() / res_df["size"].sum()
     res_df = res_df.sort_index().assign(eff=res_df["eff"] - mean_mv_avg)
+    if include_CI:
+        ci_est = delta_df.groupby(feature).Delta.agg(
+            [("CI_estimate", lambda x: CI_estimate(x, C=C))]
+        )
+        # ci_est.loc[min(bins)] = ci_est.iloc[0]
+        ci_est = ci_est.sort_index()
+        lowerCI_name = "lowerCI_" + str(int(C * 100)) + "%"
+        upperCI_name = "upperCI_" + str(int(C * 100)) + "%"
+        res_df[lowerCI_name] = res_df[["eff"]].subtract(ci_est["CI_estimate"], axis=0)
+        res_df[upperCI_name] = upperCI = res_df[["eff"]].add(
+            ci_est["CI_estimate"], axis=0
+        )
     return res_df
 
 
@@ -145,12 +159,25 @@ def plot_1D_continuous_eff(res_df, X, fig=None, ax=None):
     tr = mtrans.offset_copy(ax.transData, fig=fig, x=0.0, y=-5, units="points")
     ax.plot(
         rug,
-        (res_df[["eff"]].min()).to_list() * len(rug),
+        [res_df.drop("size", axis=1).min().min()] * len(rug),
         "|",
         color="k",
         alpha=0.2,
         transform=tr,
     )
+    lowerCI_name = res_df.columns[res_df.columns.str.contains("lowerCI")]
+    upperCI_name = res_df.columns[res_df.columns.str.contains("upperCI")]
+    if (len(lowerCI_name) == 1) and (len(upperCI_name) == 1):
+        label = lowerCI_name.str.split("_")[0][1] + " confidence interval"
+        ax.fill_between(
+            res_df.index,
+            y1=res_df[lowerCI_name[0]],
+            y2=res_df[upperCI_name[0]],
+            alpha=0.2,
+            color="grey",
+            label=label,
+        )
+        ax.legend()
     ax.set_xlabel(res_df.index.name)
     ax.set_ylabel("Effect on prediction (centered)")
     ax.set_title("1D ALE Plot - Continuous")
