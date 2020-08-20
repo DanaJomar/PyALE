@@ -3,9 +3,15 @@
 **ALE**: Accumulated Local Effects <br>
 A python implementation of the ALE plots based on the implementation of the R package [ALEPlot](https://github.com/cran/ALEPlot/blob/master/R/ALEPlot.R)
 
+**Disclaimer:** This is still a work in progress project so the code still have some missing pieces. The end goal is to release as a Python package in pypi.
 
-## Usage:
-* Prepare data and train a model
+## Features:
+* Effect of one numeric feature with the option of computing a confidence interval of the effect
+* Effect of one discrete or categorical features
+* Effect of two numeric feature
+
+## Usage with examples:
+* First prepare data and train a model
 
 ```python
 import pandas as pd
@@ -32,52 +38,126 @@ X.loc[:,'cut'] = X.loc[:,'cut'].cat.codes
 X.loc[:, 'color'] = X.loc[:, 'color'].cat.codes
 X.loc[:, 'clarity'] = X.loc[:, 'clarity'].cat.codes
 
-model = RandomForestRegressor()
+model = RandomForestRegressor(random_state = 1345)
 model.fit(X, y)
 ```
-### 1D ALE plot for numeric continuous features 
+
+* import the generic function `ale` from the package
 
 ```python
-from PyALE import aleplot_1D_continuous, plot_1D_continuous_eff
-
-ale_res = aleplot_1D_continuous(X, model, 'carat', 20)
-plot_1D_continuous_eff(ale_res, X)
+from PyALE import ale
 ```
-![1D ALE Plot](examples/plots/1D_ALE_Plot_Ex.jpeg)
-
-### 1D ALE plot for numeric discrete features
+* **1D ALE plot for numeric continuous features** 
 
 ```python
-from PyALE import aleplot_1D_discrete, plot_1D_discrete_eff
+## 1D - continuous - no CI
+ale_eff = ale(
+    X=X, 
+    model=model,
+    feature='carat', 
+    feature_type='continuous',
+    grid_size=50, 
+    include_CI=False)
+```
+![1D ALE Plot](examples/plots/1D_ALE_Plot_Ex_noCI.jpeg)
 
-ale_res = aleplot_1D_discrete(X, model, 'carat', 20)
-plot_1D_discrete_eff(ale_res, X)
+The confidence intervals around the estimated effects are specially important when the sample data is small, which is why as an example plot for the confidence intervals we'll take a random sample of the dataset
+
+```python
+## 1D - continuous - with 95% CI
+random.seed(123)
+X_sample = X.loc[random.sample(X.index.to_list(), 1000), :]
+ale_eff = ale(
+    X=X_sample, 
+    model=model,
+    feature='carat', 
+    feature_type='continuous',
+    grid_size=50, 
+    include_CI=True,
+    C=0.95)
+```
+![1D ALE Plot with CI](examples/plots/1D_ALE_Plot_Ex_withCI.jpeg)
+
+* **1D ALE plot for numeric discrete features**
+
+```python
+## 1D - discrete
+ale_eff = ale(
+    X=X,
+    model=model, 
+    feature='cut',
+    feature_type='discrete')
 ```
 ![1D ALE Plot Disc](examples/plots/1D_ALE_Plot_Discrete_Ex.jpeg)
 
 
-### 2D ALE plot for numeric features
-```python
-from PyALE import aleplot_2D_continuous, plot_2D_continuous_eff
+* **2D ALE plot for numeric features**
 
-ale_res = aleplot_2D_continuous(X, model, ['z', 'table'], 100)
-plot_2D_continuous_eff(ale_res, contour=False)
+```python
+## 2D - continuous
+ale_eff = ale(
+    X=X,
+    model=model, 
+    feature=['z', 'table'],
+    grid_size=100)
 ```
 ![2D ALE Plot](examples/plots/2D_ALE_Plot_Ex.jpeg)
 
 Or sometimes it is better to take a look at the effect of each feature on its own but side by side
+For additional plot customization one can pass a figure and axis to the function
 
 ```python
-from PyALE import aleplot_1D_continuous, plot_1D_continuous_eff
-
-ale_res_1 = aleplot_1D_continuous(X, model, 'z', 20)
-ale_res_2 = aleplot_1D_continuous(X, model, 'table', 20)
-
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 8))
-fig, ax1 = plot_1D_continuous_eff(ale_res_1, X, fig, ax1)
-fig, ax2 = plot_1D_continuous_eff(ale_res_2, X, fig, ax2)
+## two 1D plots side by side
+import matplotlib.pyplot as plt
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 7))
+ale_res_1 = ale(
+    X=X,  model=model, feature='z', feature_type='continuous', grid_size=20, 
+    include_CI=True, C=0.95, 
+    plot=True, fig=fig, ax=ax1)
+ale_res_2 = ale(
+    X=X, model=model, feature='table', feature_type='continuous', grid_size=20, 
+    include_CI=True, C=0.95, 
+    plot=True, fig=fig, ax=ax2)
+# change x labels
+ax1.set_xlabel("depth in mm (0–31.8)")
+ax2.set_xlabel("width of top of diamond relative to widest point (43–95)")
 ```
 ![1D 2 ALE Plot](examples/plots/1D_ALE_Plot_2feat_Ex.jpeg)
+
+## Interpretation:
+
+```python
+random.seed(123)
+X_sample = X.loc[random.sample(X.index.to_list(), 1000), :]
+ale_eff = ale(
+    X=X_sample, 
+    model=model,
+    feature='carat', 
+    feature_type='continuous',
+    grid_size=5, 
+    include_CI=True,
+    C=0.95)
+```
+
+![1D ALE Plot](examples/plots/interpretation_Ex.jpeg)
+
+The algorithm cuts the feature to bins statring from the minimum value and ending with the maximum of the feature, then computes the average difference in prediction when the value of the feature moves between the edges of each bin, finally returns the centered cumulative sum of these averages (and the confidence interval of the differences - optional). 
+
+```python
+ale_res
+```
+|  carat  | size    |    eff       | lowerCI_95%   | upperCI_95%    |
+| ------  | ------  | -----------  | -----------   | -----------    |
+| 0.23    |   0.0   |-1837.001629  |          NaN  |        NaN     |
+| 0.38    | 215.0   |-1744.987885  | -1760.904293  |  -1729.071477  |
+| 0.56    | 189.0   |-1434.286959  | -1469.568429  |  -1399.005489  |
+| 0.90    | 201.0   |  205.224732  |   154.492631  |    255.956834  |
+| 1.18    | 195.0   | 1647.159091  |  1491.228257  |   1803.089926  |
+| 3.00    | 200.0   | 4637.027675  |  4307.809865  |   4966.245485  |
+
+What interests us when interpreting the results is the difference in the effect between the edges of the bins, in this example one can say that the value of the prediction increases by approximately 2990 (`4637 - 1647`) when the carat increases from 1.18 to 3.00, as can be seen in the last two lines. With this in mind we can see that the values of the confidence interval only makes sense starting from the second value (the upper edge of the first bin) and could also be compared with the eff value of the previous row as to give an idea of how much this difference can fluctuate (e.g., for the bin `(1.18, 3.00]` between 2660 and 3319 with 95% certainty).
+
+The lower edge of the first bin is in fact the minimum value of the feature in the given data, and it belongs to the first bin (unlike the following bins which contain the upper edge but not the lower). The size column contains the number of data points in the bin ending with the feature value in the corresponding row and starting with value before it (e.g., the bin `(1.18, 3.00]` has `200` data points).
 
 ### Ref.
 * https://cran.r-project.org/web/packages/ALEPlot/vignettes/AccumulatedLocalEffectPlot.pdf
