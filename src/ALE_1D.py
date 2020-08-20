@@ -4,7 +4,7 @@ import random
 import matplotlib.pyplot as plt
 import matplotlib.transforms as mtrans
 
-from PyALE.lib import quantile_ied, CI_estimate
+from src.lib import quantile_ied, CI_estimate
 
 def aleplot_1D_continuous(X, model, feature, grid_size=40, include_CI=True, C=0.95):
     """Compute the accumulated local effect of a numeric continuous feature.

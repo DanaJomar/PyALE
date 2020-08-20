@@ -4,8 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.neighbors import NearestNeighbors
 
-from PyALE.lib import quantile_ied
-
+from src.lib import quantile_ied
 
 def aleplot_2D_continuous(X, model, features, grid_size=40):
     """Compute the two dimentional accumulated local effect of a two numeric continuous features.
