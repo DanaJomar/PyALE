@@ -6,8 +6,8 @@ A python implementation of the ALE plots based on the implementation of the R pa
 **Disclaimer:** This is still a work in progress project so the code still have some missing pieces. The end goal is to release as a Python package in pypi.
 
 ## Features:
-* Effect of one numeric feature with the option of computing a confidence interval of the effect
-* Effect of one discrete or categorical features
+* Effect of one numeric feature with the option of computing a confidence interval of the effect.
+* Effect of one discrete or categorical features with the option of computing a confidence interval of the effect.
 * Effect of two numeric feature
 
 ## Usage with examples:
@@ -129,7 +129,7 @@ ax2.set_xlabel("width of top of diamond relative to widest point (43–95)")
 ```python
 random.seed(123)
 X_sample = X.loc[random.sample(X.index.to_list(), 1000), :]
-ale_eff = ale(
+ale_contin = ale(
     X=X_sample, 
     model=model,
     feature='carat', 
@@ -141,23 +141,51 @@ ale_eff = ale(
 
 ![1D ALE Plot](examples/plots/interpretation_Ex.jpeg)
 
-The algorithm cuts the feature to bins statring from the minimum value and ending with the maximum of the feature, then computes the average difference in prediction when the value of the feature moves between the edges of each bin, finally returns the centered cumulative sum of these averages (and the confidence interval of the differences - optional). 
+For continuous variables the algorithm cuts the feature to bins starting from the minimum value and ending with the maximum value of the feature, then computes the average difference in prediction when the value of the feature moves between the edges of each bin, finally returns the centered cumulative sum of these averages (and the confidence interval of the differences - optional). 
 
 ```python
-ale_res
+ale_contin
 ```
-|  carat  | size    |    eff       | lowerCI_95%   | upperCI_95%    |
-| ------  | ------  | -----------  | -----------   | -----------    |
-| 0.23    |   0.0   |-1837.001629  |          NaN  |        NaN     |
-| 0.38    | 215.0   |-1744.987885  | -1760.904293  |  -1729.071477  |
-| 0.56    | 189.0   |-1434.286959  | -1469.568429  |  -1399.005489  |
-| 0.90    | 201.0   |  205.224732  |   154.492631  |    255.956834  |
-| 1.18    | 195.0   | 1647.159091  |  1491.228257  |   1803.089926  |
-| 3.00    | 200.0   | 4637.027675  |  4307.809865  |   4966.245485  |
+|  carat  |    eff      | size   | lowerCI_95%   | upperCI_95%    |
+| ------  | ----------- | ------ | -----------   | -----------    |
+| 0.23    |-1837.001629 |   0.0  |          NaN  |        NaN     |
+| 0.38    |-1744.987885 | 215.0  | -1760.904293  |  -1729.071477  |
+| 0.56    |-1434.286959 | 189.0  | -1469.568429  |  -1399.005489  |
+| 0.90    |  205.224732 | 201.0  |   154.492631  |    255.956834  |
+| 1.18    | 1647.159091 | 195.0  |  1491.228257  |   1803.089926  |
+| 3.00    | 4637.027675 | 200.0  |  4307.809865  |   4966.245485  |
 
 What interests us when interpreting the results is the difference in the effect between the edges of the bins, in this example one can say that the value of the prediction increases by approximately 2990 (`4637 - 1647`) when the carat increases from 1.18 to 3.00, as can be seen in the last two lines. With this in mind we can see that the values of the confidence interval only makes sense starting from the second value (the upper edge of the first bin) and could also be compared with the eff value of the previous row as to give an idea of how much this difference can fluctuate (e.g., for the bin `(1.18, 3.00]` between 2660 and 3319 with 95% certainty).
 
 The lower edge of the first bin is in fact the minimum value of the feature in the given data, and it belongs to the first bin (unlike the following bins which contain the upper edge but not the lower). The size column contains the number of data points in the bin ending with the feature value in the corresponding row and starting with value before it (e.g., the bin `(1.18, 3.00]` has `200` data points).
+
+For categoricals or variables with discrete values the interpretation is similar and we also get the average difference in prediction, but instead of bins each value will be replaced once with the value before it and once with the value after it.
+
+```python
+ale_discr = ale(
+    X=X_sample, 
+    model=model,
+    feature='cut', 
+    feature_type='discrete',
+    include_CI=True,
+    C=0.95)
+```
+
+![1D ALE Plot](examples/plots/interpretation_discr_Ex.jpeg)
+
+We can also think of it from the perspective of bins as follows, every bin contains two consecutive values (or categories) from the feature, for example with the `cut` feature the bins are `[0, 1]`, `[1, 2]`, `[2, 3]`, `[3, 4]`, and what interests us is still the difference in the effect between the edges of the bins, as well as the range in which this difference fluctuate when taking the confidence interval into consideration. That being said the `size` column contains the number of data points in this category (**not** ~~the size of the data sample in the bin~~ anymore), this means to get the sample size in the bin one has to sum up the sample size of each value in it (e.g., in `[0, 1]` there is 38 + 82 data points)
+
+```python
+ale_discr
+```
+
+| cut |        eff  | size  | lowerCI_95%  | upperCI_95% |
+| --- | ----------- | ----- | -----------  | ----------- |
+| 0   | -97.899068  |   38  |         NaN  |         NaN |
+| 1   | -78.637401  |   82  |  -92.021015  |  -65.253787 |
+| 2   | -45.933788  |  204  |  -59.335160  |  -32.532416 |
+| 3   | -29.779222  |  276  |  -39.234601  |  -20.323843 |
+| 4   |  69.394974  |  400  |   51.432901  |   87.357046 |
 
 ### Ref.
 * https://cran.r-project.org/web/packages/ALEPlot/vignettes/AccumulatedLocalEffectPlot.pdf
