@@ -45,7 +45,7 @@ def aleplot_1D_continuous(X, model, feature, grid_size=40, include_CI=True, C=0.
     y_2 = model.predict(X2)
 
     delta_df = pd.DataFrame({feature: bins[bin_codes + 1], "Delta": y_2 - y_1})
-    res_df = delta_df.groupby([feature]).Delta.agg(["size", ("eff", "mean")])
+    res_df = delta_df.groupby([feature]).Delta.agg([("eff", "mean"), "size"])
     res_df["eff"] = res_df["eff"].cumsum()
     res_df.loc[min(bins), :] = 0
     # subtract the total average of a moving average of size 2
@@ -57,7 +57,6 @@ def aleplot_1D_continuous(X, model, feature, grid_size=40, include_CI=True, C=0.
         ci_est = delta_df.groupby(feature).Delta.agg(
             [("CI_estimate", lambda x: CI_estimate(x, C=C))]
         )
-        # ci_est.loc[min(bins)] = ci_est.iloc[0]
         ci_est = ci_est.sort_index()
         lowerCI_name = "lowerCI_" + str(int(C * 100)) + "%"
         upperCI_name = "upperCI_" + str(int(C * 100)) + "%"
@@ -68,7 +67,7 @@ def aleplot_1D_continuous(X, model, feature, grid_size=40, include_CI=True, C=0.
     return res_df
 
 
-def aleplot_1D_discrete(X, model, feature):
+def aleplot_1D_discrete(X, model, feature, include_CI=True, C=0.95):
     """Compute the accumulated local effect of a numeric discrete feature.
     
     This function computes the difference in prediction when the value of the feature
@@ -79,6 +78,9 @@ def aleplot_1D_discrete(X, model, feature):
     X -- A pandas DataFrame to pass to the model for prediction.
     model -- Any python model with a predict method that accepts X as input.
     feature -- String, the name of the column holding the feature being studied.
+    include_CI -- A boolean, if True the confidence interval 
+    of the effect is returned with the results. 
+    C -- A float indicating the soze of the confidence interval
     
     Return: A pandas DataFrame containing for each value of the feature: the size 
     of the sample in it and the accumulated centered effect around this value.
@@ -87,12 +89,12 @@ def aleplot_1D_discrete(X, model, feature):
     groups = X[feature].unique()
     groups.sort()
     groups_codes = [x for x in range(len(groups))]
-
+    
     groups_counts = X.groupby(feature).size()
     groups_props = groups_counts / sum(groups_counts)
-
+    
     K = len(groups)
-
+    
     # create copies of the dataframe
     X_plus = X.copy()
     X_neg = X.copy()
@@ -111,19 +113,28 @@ def aleplot_1D_discrete(X, model, feature):
     # compute prediction difference
     Delta_plus = y_hat_plus - y_hat[ind_plus]
     Delta_neg = y_hat[ind_neg] - y_hat_neg
-
+    
     # compute the mean of the difference per group
-    res_df = pd.concat(
+    delta_df = pd.concat(
         [
-            pd.DataFrame({"Delta": Delta_plus, feature: X.loc[ind_plus, feature] + 1}),
-            pd.DataFrame({"Delta": Delta_neg, feature: X.loc[ind_neg, feature]}),
+            pd.DataFrame({"eff": Delta_plus, feature: X.loc[ind_plus, feature] + 1}),
+            pd.DataFrame({"eff": Delta_neg, feature: X.loc[ind_neg, feature]}),
         ]
     )
-    res_df = res_df.groupby([feature]).mean()
-    res_df["eff"] = res_df["Delta"].cumsum()
+    res_df = delta_df.groupby([feature]).mean()
+    res_df["eff"] = res_df["eff"].cumsum()
     res_df.loc[0] = 0
     res_df = res_df.sort_index()
     res_df["eff"] = res_df["eff"] - sum(res_df["eff"] * groups_props)
+    res_df["size"] = groups_counts
+    if include_CI:
+      ci_est = delta_df.groupby([feature]).eff.agg([("CI_estimate", lambda x: CI_estimate(x, C=C))])
+      lowerCI_name = "lowerCI_" + str(int(C * 100)) + "%"
+      upperCI_name = "upperCI_" + str(int(C * 100)) + "%"
+      res_df[lowerCI_name] = res_df[["eff"]].subtract(ci_est["CI_estimate"], axis=0)
+      res_df[upperCI_name] = upperCI = res_df[["eff"]].add(
+          ci_est["CI_estimate"], axis=0
+      )
     return res_df
 
 
@@ -197,9 +208,25 @@ def plot_1D_discrete_eff(res_df, X, fig=None, ax=None):
     feature_name = res_df.index.name
     if fig is None and ax is None:
         fig, ax = plt.subplots(figsize=(8, 4))
-    ax.bar(res_df.index, res_df["eff"], alpha=0.2)
-
     ax.set_xlabel(feature_name)
     ax.set_ylabel("Effect on prediction (centered)")
-    ax.set_title("1D ALE Plot - Discrete/Categorical")
-    return fig, ax
+    yerr=0
+    lowerCI_name = res_df.columns[res_df.columns.str.contains("lowerCI")]
+    upperCI_name = res_df.columns[res_df.columns.str.contains("upperCI")]
+    if (len(lowerCI_name) == 1) and (len(upperCI_name) == 1):
+      yerr = res_df[upperCI_name].subtract(res_df['eff'], axis=0).iloc[:, 0]
+    ax.errorbar(res_df.index.astype(str), 
+            res_df['eff'], 
+            yerr=yerr,
+            capsize=3,      
+            marker='o',   
+            linestyle='dashed',
+            color='black',
+            )
+    ax2 = ax.twinx()  
+    ax2.set_ylabel('Size', color='lightblue') 
+    ax2.bar(res_df.index.astype(str), res_df['size'], alpha=0.1, align='center')
+    ax2.tick_params(axis='y', labelcolor='lightblue')
+    
+    fig.tight_layout() 
+    return fig, ax, ax2

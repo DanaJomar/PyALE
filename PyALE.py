@@ -42,6 +42,8 @@ def ale(
                 "X": X,
                 "model": model,
                 "feature": feature,
+                "include_CI": include_CI,
+                "C": C,
             }
             arg_plot = {
                 "X": X,
