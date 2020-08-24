@@ -157,7 +157,7 @@ ale_contin
 
 What interests us when interpreting the results is the difference in the effect between the edges of the bins, in this example one can say that the value of the prediction increases by approximately 2990 (`4637 - 1647`) when the carat increases from 1.18 to 3.00, as can be seen in the last two lines. With this in mind we can see that the values of the confidence interval only makes sense starting from the second value (the upper edge of the first bin) and could also be compared with the eff value of the previous row as to give an idea of how much this difference can fluctuate (e.g., for the bin `(1.18, 3.00]` between 2660 and 3319 with 95% certainty).
 
-The lower edge of the first bin is in fact the minimum value of the feature in the given data, and it belongs to the first bin (unlike the following bins which contain the upper edge but not the lower). The size column contains the number of data points in the bin ending with the feature value in the corresponding row and starting with value before it (e.g., the bin `(1.18, 3.00]` has `200` data points).
+The lower edge of the first bin is in fact the minimum value of the feature in the given data, and it belongs to the first bin (unlike the following bins which contain the upper edge but not the lower). The size column contains the number of data points in the bin ending with the feature value in the corresponding row and starting with value before it (e.g., the bin `(1.18, 3.00]` has `200` data points). The rug at the bottom of the generated plot shows the distribution of the data points.
 
 For categoricals or variables with discrete values the interpretation is similar and we also get the average difference in prediction, but instead of bins each value will be replaced once with the value before it and once with the value after it.
 
@@ -173,7 +173,7 @@ ale_discr = ale(
 
 ![1D ALE Plot](examples/plots/interpretation_discr_Ex.jpeg)
 
-We can also think of it from the perspective of bins as follows, every bin contains two consecutive values (or categories) from the feature, for example with the `cut` feature the bins are `[0, 1]`, `[1, 2]`, `[2, 3]`, `[3, 4]`, and what interests us is still the difference in the effect between the edges of the bins, as well as the range in which this difference fluctuate when taking the confidence interval into consideration. That being said the `size` column contains the number of data points in this category (**not** ~~the size of the data sample in the bin~~ anymore), this means to get the sample size in the bin one has to sum up the sample size of each value in it (e.g., in `[0, 1]` there is 38 + 82 data points)
+We can also think of it from the perspective of bins as follows, every bin contains two consecutive values (or categories) from the feature, for example with the `cut` feature the bins are `[0, 1]`, `[1, 2]`, `[2, 3]`, `[3, 4]`, and what interests us is still the difference in the effect between the edges of the bins, as well as the range in which this difference fluctuate when taking the confidence interval into consideration. That being said the `size` column contains the number of data points in this category (**not** ~~the size of the data sample in the bin~~ anymore), this means to get the sample size in the bin one has to sum up the sample size of each value in it (e.g., in `[0, 1]` there is 38 + 82 data points). The bars in the background of the generated plot shows the size of the sample in each category/value.
 
 ```python
 ale_discr
