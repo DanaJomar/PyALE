@@ -214,7 +214,7 @@ def aleplot_2D_continuous(X, model, features, grid_size=40):
     return eff_grid
 
 
-def plot_2D_continuous_eff(eff_grid, contour=True, fig=None, ax=None):
+def plot_2D_continuous_eff(eff_grid, contour=False, fig=None, ax=None):
     """Plot the 1D ALE plot.
     
     Arguments:

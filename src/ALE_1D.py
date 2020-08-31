@@ -6,7 +6,7 @@ import matplotlib.transforms as mtrans
 
 from src.lib import quantile_ied, CI_estimate
 
-def aleplot_1D_continuous(X, model, feature, grid_size=40, include_CI=True, C=0.95):
+def aleplot_1D_continuous(X, model, feature, grid_size=20, include_CI=True, C=0.95):
     """Compute the accumulated local effect of a numeric continuous feature.
     
     This function divides the feature in question into grid_size intervals (bins) 
@@ -21,7 +21,7 @@ def aleplot_1D_continuous(X, model, feature, grid_size=40, include_CI=True, C=0.
     feature range is divided.
     include_CI -- A boolean, if True the confidence interval 
     of the effect is returned with the results. 
-    C -- A float indicating the soze of the confidence interval
+    C -- A float the confidence level for which to compute the confidence interval
     
     Return: A pandas DataFrame containing for each bin: the size of the sample in it
     and the accumulated centered effect of this bin.
@@ -80,7 +80,7 @@ def aleplot_1D_discrete(X, model, feature, include_CI=True, C=0.95):
     feature -- String, the name of the column holding the feature being studied.
     include_CI -- A boolean, if True the confidence interval 
     of the effect is returned with the results. 
-    C -- A float indicating the soze of the confidence interval
+    C -- A float the confidence level for which to compute the confidence interval
     
     Return: A pandas DataFrame containing for each value of the feature: the size 
     of the sample in it and the accumulated centered effect around this value.
@@ -227,6 +227,6 @@ def plot_1D_discrete_eff(res_df, X, fig=None, ax=None):
     ax2.set_ylabel('Size', color='lightblue') 
     ax2.bar(res_df.index.astype(str), res_df['size'], alpha=0.1, align='center')
     ax2.tick_params(axis='y', labelcolor='lightblue')
-    
+    ax2.set_title("1D ALE Plot - Discrete/Categorical")
     fig.tight_layout() 
     return fig, ax, ax2
