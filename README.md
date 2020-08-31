@@ -54,7 +54,7 @@ from PyALE import ale
 ale_eff = ale(
     X=X, 
     model=model,
-    feature='carat', 
+    feature=['carat'], 
     feature_type='continuous',
     grid_size=50, 
     include_CI=False)
@@ -70,7 +70,7 @@ X_sample = X.loc[random.sample(X.index.to_list(), 1000), :]
 ale_eff = ale(
     X=X_sample, 
     model=model,
-    feature='carat', 
+    feature=['carat'], 
     feature_type='continuous',
     grid_size=50, 
     include_CI=True,
@@ -85,7 +85,7 @@ ale_eff = ale(
 ale_eff = ale(
     X=X,
     model=model, 
-    feature='cut',
+    feature=['cut'],
     feature_type='discrete')
 ```
 ![1D ALE Plot Disc](examples/plots/1D_ALE_Plot_Discrete_Ex.jpeg)
@@ -111,11 +111,11 @@ For additional plot customization one can pass a figure and axis to the function
 import matplotlib.pyplot as plt
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 7))
 ale_res_1 = ale(
-    X=X,  model=model, feature='z', feature_type='continuous', grid_size=20, 
+    X=X,  model=model, feature=['z'], feature_type='continuous', grid_size=20, 
     include_CI=True, C=0.95, 
     plot=True, fig=fig, ax=ax1)
 ale_res_2 = ale(
-    X=X, model=model, feature='table', feature_type='continuous', grid_size=20, 
+    X=X, model=model, feature=['table'], feature_type='continuous', grid_size=20, 
     include_CI=True, C=0.95, 
     plot=True, fig=fig, ax=ax2)
 # change x labels
@@ -132,7 +132,7 @@ X_sample = X.loc[random.sample(X.index.to_list(), 1000), :]
 ale_contin = ale(
     X=X_sample, 
     model=model,
-    feature='carat', 
+    feature=['carat'], 
     feature_type='continuous',
     grid_size=5, 
     include_CI=True,
@@ -165,7 +165,7 @@ For categoricals or variables with discrete values the interpretation is similar
 ale_discr = ale(
     X=X_sample, 
     model=model,
-    feature='cut', 
+    feature=['cut'], 
     feature_type='discrete',
     include_CI=True,
     C=0.95)
