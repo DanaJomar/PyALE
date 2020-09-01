@@ -19,8 +19,8 @@ from sklearn.ensemble import RandomForestRegressor
 
 # get the raw diamond data (from R's ggplot2) 
 dat_diamonds = pd.read_csv('https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamonds.csv')
-X = dat_diamonds.loc[:, ~dat_diamonds.columns.str.contains('price')]
-y = dat_diamonds.loc[:, 'price']
+X = dat_diamonds.loc[:, ~dat_diamonds.columns.str.contains('price')].copy()
+y = dat_diamonds.loc[:, 'price'].copy()
 
 # convert the three text columns to ordered categoricals
 X.loc[:,'cut'] = X.loc[:,'cut'].astype(pd.api.types.CategoricalDtype(
