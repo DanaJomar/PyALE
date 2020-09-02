@@ -1,6 +1,7 @@
 import unittest
 import os
 import numpy as np
+import pandas as pd
 import pickle
 from sklearn.ensemble import RandomForestRegressor
 from PyALE.src.ALE_2D import aleplot_2D_continuous
@@ -9,10 +10,14 @@ from PyALE.src.ALE_2D import aleplot_2D_continuous
 class Test2DFunctions(unittest.TestCase):
     def setUp(self):
         path_to_fixtures = os.path.join(os.path.dirname(__file__), "fixtures")
-        with open(os.path.join(path_to_fixtures, "X.pickle"), "rb") as X_pickle:
-            self.X = pickle.load(X_pickle)
-        with open(os.path.join(path_to_fixtures, "y.npy"), "rb") as y_npy:
-            self.y = np.load(y_npy)
+        np.random.seed(876)
+        x1 = np.random.uniform(low=0, high=1, size=200)
+        x2 = np.random.uniform(low=0, high=1, size=200)
+        x3 = np.random.uniform(low=0, high=1, size=200)
+        x4 = np.random.choice(range(10), 200)
+        self.y = x1 + 2 * x2 ** 2 + np.log(x4 + 1) + np.random.normal(size=200)
+        self.X = pd.DataFrame({"x1": x1, "x2": x2, "x3": x3, "x4": x4})
+
         with open(os.path.join(path_to_fixtures, "model.pickle"), "rb") as model_pickle:
             self.model = pickle.load(model_pickle)
         self.ale_eff = aleplot_2D_continuous(
