@@ -4,7 +4,7 @@ import random
 import matplotlib.pyplot as plt
 import matplotlib.transforms as mtrans
 
-from src.lib import quantile_ied, CI_estimate
+from .lib import quantile_ied, CI_estimate
 
 def aleplot_1D_continuous(X, model, feature, grid_size=20, include_CI=True, C=0.95):
     """Compute the accumulated local effect of a numeric continuous feature.
@@ -41,8 +41,8 @@ def aleplot_1D_continuous(X, model, feature, grid_size=20, include_CI=True, C=0.
     X2 = X.copy()
     X1[feature] = [bins[i] for i in bin_codes]
     X2[feature] = [bins[i + 1] for i in bin_codes]
-    y_1 = model.predict(X1)
-    y_2 = model.predict(X2)
+    y_1 = model.predict(X1).ravel()
+    y_2 = model.predict(X2).ravel()
 
     delta_df = pd.DataFrame({feature: bins[bin_codes + 1], "Delta": y_2 - y_1})
     res_df = delta_df.groupby([feature]).Delta.agg([("eff", "mean"), "size"])
@@ -161,8 +161,8 @@ def plot_1D_continuous_eff(res_df, X, fig=None, ax=None):
         ).to_list()
     ]
 
-    random.seed(123)
-    rug = [x + random.uniform(-y, y) for x, y in zip(rug, jitter_max_step)]
+    np.random.seed(123)
+    rug = [x + np.random.uniform(-y, y) for x, y in zip(rug, jitter_max_step)]
 
     if fig is None and ax is None:
         fig, ax = plt.subplots(figsize=(8, 4))

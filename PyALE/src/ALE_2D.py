@@ -4,7 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.neighbors import NearestNeighbors
 
-from src.lib import quantile_ied
+from .lib import quantile_ied
 
 def aleplot_2D_continuous(X, model, features, grid_size=40):
     """Compute the two dimentional accumulated local effect of a two numeric continuous features.
@@ -93,7 +93,7 @@ def aleplot_2D_continuous(X, model, features, grid_size=40):
     eff_df = delta_df["mean"].reindex(index_combinations, fill_value=np.nan)
 
     # ============== fill in the effects of missing combinations ================= #
-    # ============== with kd-tree nearest neighbour algorithm   ================== #
+    # ============== use the kd-tree nearest neighbour algorithm ================= #
     row_na_idx = np.where(eff_df.isna())[0]
     feat0_code_na = eff_df.iloc[row_na_idx].index.get_level_values(0)
     feat1_code_na = eff_df.iloc[row_na_idx].index.get_level_values(1)
