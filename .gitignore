@@ -1,2 +1,9 @@
+# R
 .Rhistory
+
+# python
 __pycache__/
+
+# coverage
+.coverage
+htmlcov/
