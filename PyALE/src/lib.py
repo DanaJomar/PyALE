@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from statsmodels.distributions.empirical_distribution import ECDF
 from scipy.stats import t
 
@@ -9,14 +10,19 @@ def cmds(D, k=2):
     Theory and code references:
     https://en.wikipedia.org/wiki/Multidimensional_scaling#Classical_multidimensional_scaling
     http://www.nervouscomputer.com/hfs/cmdscale-in-python/
-    """
 
-    # Number of points
-    n = len(D)
+    Arguments:
+    D -- A squared matrix-like object (array, DataFrame, ....), usually a distance matrix
+    """
+    
+    n = D.shape[0]
+    if D.shape[0] != D.shape[1] :
+        raise Exception("The matrix D should be squared")
     if k > (n - 1):
-        raise Exception("k should be an integer <= len(D) - 1")
+        raise Exception("k should be an integer <= D.shape[0] - 1")
+    
     # (1) Set up the squared proximity matrix
-    D_double = D ** 2
+    D_double = np.square(D)
     # (2) Apply double centering: using the centering matrix
     # centering matrix
     center_mat = np.eye(n) - np.ones((n, n)) / n
@@ -51,7 +57,8 @@ def order_groups(X, feature):
     """
 
     features = X.columns
-    groups = X[feature].cat.categories.values
+    # groups = X[feature].cat.categories.values
+    groups = X[feature].unique()
     D_cumu = pd.DataFrame(0, index=groups, columns=groups)
     K = len(groups)
     for j in set(features) - set([feature]):
@@ -84,7 +91,7 @@ def order_groups(X, feature):
             q_ecdf = X_ecdf.apply(lambda x: x(q_X_j))
             for i in range(K):
                 group = groups[i]
-                D_values = abs(q_ecdf - q_ecdf[group]).apply(max)
+                D_values = q_ecdf.apply(lambda x: max(abs(x - q_ecdf[group])))
                 D.loc[group, :] = D_values
                 D.loc[:, group] = D_values
         D_cumu = D_cumu + D
@@ -104,6 +111,10 @@ def quantile_ied(x_vec, q):
     https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.mstats.mquantiles.html
     https://stat.ethz.ch/R-manual/R-devel/library/stats/html/quantile.html    
     https://en.wikipedia.org/wiki/Quantile
+    
+    Arguments:
+    x_vec -- A pandas series containing the values to compute the quantile for
+    q -- An array of probabilities (values between 0 and 1)
     """
 
     x_vec = x_vec.sort_values()
@@ -125,15 +136,15 @@ def quantile_ied(x_vec, q):
     return quant_res
 
 
-def CI_estimate(data, C=0.95):
+def CI_estimate(x_vec, C=0.95):
     """Estimate the size of the confidence interval of a data sample.
     
-    The confidence interval of the given data sample is 
-    [mean(data) - returned value, mean(data) + returned value].
+    The confidence interval of the given data sample (x_vec) is 
+    [mean(x_vec) - returned value, mean(x_vec) + returned value].
     """
     alpha = 1 - C
-    n = len(data)
-    stand_err = data.std() / np.sqrt(n)
+    n = len(x_vec)
+    stand_err = x_vec.std() / np.sqrt(n)
     critical_val = 1 - (alpha / 2)
     z_star = stand_err * t.ppf(critical_val, n - 1)
     return z_star
