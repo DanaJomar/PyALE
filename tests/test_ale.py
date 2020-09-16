@@ -5,7 +5,7 @@ import pickle
 import unittest
 from unittest.mock import patch
 
-from PyALE.ALE_generic import ale
+from PyALE._ALE_generic import ale
 
 
 class Testale(unittest.TestCase):
@@ -79,7 +79,7 @@ class Testale(unittest.TestCase):
         self.assertEqual(c_ex.exception.args[0], c_ex_msg)
 
     def test_auto_calls_1D_continuous(self):
-        with patch("PyALE.ALE_generic.aleplot_1D_continuous") as mock:
+        with patch("PyALE._ALE_generic.aleplot_1D_continuous") as mock:
             result = ale(
                 X=self.X,
                 model=self.model,
@@ -99,7 +99,7 @@ class Testale(unittest.TestCase):
             )
       
     def test_auto_calls_1D_discrete(self):
-        with patch("PyALE.ALE_generic.aleplot_1D_discrete") as mock:
+        with patch("PyALE._ALE_generic.aleplot_1D_discrete") as mock:
             result = ale(
                 X=self.X,
                 model=self.model,
@@ -118,7 +118,7 @@ class Testale(unittest.TestCase):
             )
 
     def test_contin_calls_1D_continuous(self):
-        with patch("PyALE.ALE_generic.aleplot_1D_continuous") as mock:
+        with patch("PyALE._ALE_generic.aleplot_1D_continuous") as mock:
             result = ale(
                 X=self.X,
                 model=self.model,
@@ -138,7 +138,7 @@ class Testale(unittest.TestCase):
             )
       
     def test_discr_calls_1D_discrete(self):
-        with patch("PyALE.ALE_generic.aleplot_1D_discrete") as mock:
+        with patch("PyALE._ALE_generic.aleplot_1D_discrete") as mock:
             result = ale(
                 X=self.X,
                 model=self.model,
@@ -157,7 +157,7 @@ class Testale(unittest.TestCase):
             )    
 
     def test_2D_continuous_called(self):
-        with patch("PyALE.ALE_generic.aleplot_2D_continuous") as mock:
+        with patch("PyALE._ALE_generic.aleplot_2D_continuous") as mock:
             result = ale(
                 X=self.X,
                 model=self.model,
@@ -175,7 +175,7 @@ class Testale(unittest.TestCase):
             )
 
     def test_1D_continuous_plot_called(self):
-        with patch("PyALE.ALE_generic.plot_1D_continuous_eff") as mock:
+        with patch("PyALE._ALE_generic.plot_1D_continuous_eff") as mock:
             result = ale(
                 X=self.X,
                 model=self.model,
@@ -188,7 +188,7 @@ class Testale(unittest.TestCase):
             mock.assert_called_once_with(result, X=self.X, fig=None, ax=None)
 
     def test_1D_discrete_plot_called(self):
-        with patch("PyALE.ALE_generic.plot_1D_discrete_eff") as mock:
+        with patch("PyALE._ALE_generic.plot_1D_discrete_eff") as mock:
             result = ale(
                 X=self.X,
                 model=self.model,
@@ -201,7 +201,7 @@ class Testale(unittest.TestCase):
             mock.assert_called_once_with(result, X=self.X, fig=None, ax=None)
 
     def test_2D_continuous_plot_called(self):
-        with patch("PyALE.ALE_generic.plot_2D_continuous_eff") as mock:
+        with patch("PyALE._ALE_generic.plot_2D_continuous_eff") as mock:
             result = ale(
                 X=self.X,
                 model=self.model,

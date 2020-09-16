@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pickle
 from sklearn.ensemble import RandomForestRegressor
-from PyALE.src.ALE_2D import aleplot_2D_continuous
+from PyALE._src.ALE_2D import aleplot_2D_continuous
 
 
 class Test2DFunctions(unittest.TestCase):

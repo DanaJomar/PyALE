@@ -3,7 +3,7 @@ import os
 import numpy as np
 import pandas as pd
 
-from PyALE.src.lib import cmds, order_groups, quantile_ied, CI_estimate
+from PyALE._src.lib import cmds, order_groups, quantile_ied, CI_estimate
 
 
 class TestlibFunctions(unittest.TestCase):
