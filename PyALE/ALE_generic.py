@@ -73,7 +73,7 @@ def ale(
         A boolean, if True the confidence interval of the effect is returned with the results. 
     C 
     ----
-        A float the confidence level for which to compute the confidence interval.
+        A float, the confidence level for which to compute the confidence interval.
     plot 
     ---- 
         A boolean indicating whether to plot the effects or not.
@@ -109,10 +109,10 @@ def ale(
             "The arguemnt 'feature' must be a list of at most two feature names (strings)"
         )
 
-    if np.any([not X.columns.contains(x) for x in feature]):
+    if np.any([not x in X.columns for x in feature]):
         raise Exception(
-            "Features {} were not found in the column names of X".format(
-                [x for x in feature if not X.columns.contains(x)]
+            "Feature(s) {} was(were) not found in the column names of X".format(
+                [x for x in feature if not x in X.columns]
             )
         )
 
