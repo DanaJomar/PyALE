@@ -157,7 +157,6 @@ class Testale(unittest.TestCase):
             )    
 
     def test_2D_continuous_called(self):
-        """Testing 2D continuous is called with two features """
         with patch("PyALE.ALE_generic.aleplot_2D_continuous") as mock:
             result = ale(
                 X=self.X,
@@ -176,7 +175,6 @@ class Testale(unittest.TestCase):
             )
 
     def test_1D_continuous_plot_called(self):
-        """Testing 2D continuous is called with two features """
         with patch("PyALE.ALE_generic.plot_1D_continuous_eff") as mock:
             result = ale(
                 X=self.X,
@@ -190,7 +188,6 @@ class Testale(unittest.TestCase):
             mock.assert_called_once_with(result, X=self.X, fig=None, ax=None)
 
     def test_1D_discrete_plot_called(self):
-        """Testing 2D continuous is called with two features """
         with patch("PyALE.ALE_generic.plot_1D_discrete_eff") as mock:
             result = ale(
                 X=self.X,
@@ -204,7 +201,6 @@ class Testale(unittest.TestCase):
             mock.assert_called_once_with(result, X=self.X, fig=None, ax=None)
 
     def test_2D_continuous_plot_called(self):
-        """Testing 2D continuous is called with two features """
         with patch("PyALE.ALE_generic.plot_2D_continuous_eff") as mock:
             result = ale(
                 X=self.X,
