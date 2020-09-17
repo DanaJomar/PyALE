@@ -1,14 +1,23 @@
 # PyALE
 
 **ALE**: Accumulated Local Effects <br>
-A python implementation of the ALE plots based on the implementation of the R package [ALEPlot](https://github.com/cran/ALEPlot/blob/master/R/ALEPlot.R)
-
-**Disclaimer:** This is still a work in progress project so the code still have some missing pieces. The end goal is to release as a Python package in pypi.
+A python implementation of the ALE plots based on the implementation of the R package [ALEPlot](https://github.com/cran/ALEPlot/blob/master/R/ALEPlot.R) 
 
 ## Features:
-* Effect of one numeric feature with the option of computing a confidence interval of the effect.
-* Effect of one discrete or categorical features with the option of computing a confidence interval of the effect.
-* Effect of two numeric feature
+The end goal is to be able to create the ALE plots whether was the feature numeric or categorical.
+
+### For numeric features:
+The package offers the possibility to
+* Compute and plot the effect of one numeric feature (1D ALE)
+    * including the option to compute a confidence interval of the effect.
+* Compute and plot the effect of two numeric features (2D ALE)
+
+### For categorical features:
+Since python models work with numeric features only, categorical variables are often encoded by one of two methods, either with integer encoding (when the categories have a natural ordering of some sort e.g., days of the week) or with one-hot-encoding (when the categories do not have ordering e.g., colors)
+
+* For integer encoding: the package offers the option to compute and plot the effect of a discrete feature 
+    * including the option to compute a confidence interval of the effect.
+* For one-hot-encoding: this part is still [[**under development**]].
 
 ## Usage with examples:
 * First prepare data and train a model
