@@ -95,9 +95,9 @@ class Testale(unittest.TestCase):
                 feature="x1",
                 grid_size=5,
                 include_CI=True,
-                C=0.95
+                C=0.95,
             )
-      
+
     def test_auto_calls_1D_discrete(self):
         with patch("PyALE._ALE_generic.aleplot_1D_discrete") as mock:
             result = ale(
@@ -110,11 +110,7 @@ class Testale(unittest.TestCase):
                 plot=False,
             )
             mock.assert_called_once_with(
-                X=self.X,
-                model=self.model,
-                feature="x4",
-                include_CI=True,
-                C=0.95
+                X=self.X, model=self.model, feature="x4", include_CI=True, C=0.95
             )
 
     def test_contin_calls_1D_continuous(self):
@@ -134,9 +130,9 @@ class Testale(unittest.TestCase):
                 feature="x4",
                 grid_size=5,
                 include_CI=True,
-                C=0.95
+                C=0.95,
             )
-      
+
     def test_discr_calls_1D_discrete(self):
         with patch("PyALE._ALE_generic.aleplot_1D_discrete") as mock:
             result = ale(
@@ -149,12 +145,8 @@ class Testale(unittest.TestCase):
                 plot=False,
             )
             mock.assert_called_once_with(
-                X=self.X,
-                model=self.model,
-                feature="x1",
-                include_CI=True,
-                C=0.95
-            )    
+                X=self.X, model=self.model, feature="x1", include_CI=True, C=0.95
+            )
 
     def test_2D_continuous_called(self):
         with patch("PyALE._ALE_generic.aleplot_2D_continuous") as mock:
@@ -168,10 +160,7 @@ class Testale(unittest.TestCase):
                 plot=False,
             )
             mock.assert_called_once_with(
-                X=self.X,
-                model=self.model,
-                features=["x1", "x2"],
-                grid_size=5,
+                X=self.X, model=self.model, features=["x1", "x2"], grid_size=5,
             )
 
     def test_1D_continuous_plot_called(self):
@@ -211,6 +200,7 @@ class Testale(unittest.TestCase):
                 plot=True,
             )
             mock.assert_called_once_with(result, contour=False, fig=None, ax=None)
+
 
 if __name__ == "__main__":
     unittest.main()

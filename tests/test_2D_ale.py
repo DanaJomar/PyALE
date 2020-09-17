@@ -23,6 +23,9 @@ class Test2DFunctions(unittest.TestCase):
         self.ale_eff = aleplot_2D_continuous(
             X=self.X, model=self.model, features=["x1", "x2"], grid_size=5
         )
+        self.ale_eff_g50 = aleplot_2D_continuous(
+            X=self.X, model=self.model, features=["x1", "x2"], grid_size=50
+        )
 
     def test_indexnames(self):
         self.assertEqual(self.ale_eff.index.name, "x1")
@@ -69,5 +72,37 @@ class Test2DFunctions(unittest.TestCase):
                 -0.00255802,
                 0.15903598,
                 -0.06443989,
+            ],
+        )
+
+    def test_effvalues_g50(self):
+        self.assertCountEqual(
+            np.round(self.ale_eff_g50.iloc[0, 10:20], 8),
+            [
+                -0.79777388,
+                -0.72708313,
+                -0.63036386,
+                -0.59708803,
+                -0.46666037,
+                -0.31568099,
+                -0.17738274,
+                0.02443929,
+                0.12606745,
+                0.1965112,
+            ],
+        )
+        self.assertCountEqual(
+            np.round(self.ale_eff_g50.iloc[10:20, 0], 8),
+            [
+                -0.46167797,
+                -0.65590743,
+                -0.72626874,
+                -0.73384303,
+                -0.76019481,
+                -0.72057576,
+                -0.60993731,
+                -0.54754028,
+                -0.43078769,
+                -0.39158206,
             ],
         )
