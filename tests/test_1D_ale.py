@@ -4,7 +4,12 @@ import numpy as np
 import pandas as pd
 import pickle
 from sklearn.ensemble import RandomForestRegressor
-from PyALE._src.ALE_1D import aleplot_1D_continuous, aleplot_1D_discrete
+from PyALE._src.ALE_1D import (
+    aleplot_1D_continuous,
+    plot_1D_continuous_eff,
+    aleplot_1D_discrete,
+    plot_1D_discrete_eff,
+)
 
 
 class Test1DFunctions(unittest.TestCase):
@@ -200,6 +205,81 @@ class Test1Ddiscrete(Test1DFunctions):
                 0.71853079,
             ],
         )
+
+
+class TestContPlottingFun(Test1DFunctions):
+    def test_1D_continuous_line_plot(self):
+        ale_eff = aleplot_1D_continuous(
+            X=self.X, model=self.model, feature="x1", grid_size=5, include_CI=True
+        )
+        fig, ax = plot_1D_continuous_eff(ale_eff, self.X)
+        ## effect line
+        eff_plt_data = ax.lines[0].get_xydata()
+        # the x values should be the bins
+        self.assertCountEqual(eff_plt_data[:, 0], ale_eff.index)
+        # the y values should be the effect
+        self.assertCountEqual(eff_plt_data[:, 1], ale_eff.eff)
+
+    def test_1D_continuous_rug_plot(self):
+        ale_eff = aleplot_1D_continuous(
+            X=self.X, model=self.model, feature="x1", grid_size=5, include_CI=True
+        )
+        fig, ax = plot_1D_continuous_eff(ale_eff, self.X)        
+        ## the rug
+        rug_plot_data = ax.lines[1].get_xydata()
+        # a line for each data point in X
+        self.assertEqual(rug_plot_data.shape[0], self.X.shape[0])
+        # y position is always at the lower eff value
+        self.assertCountEqual(np.unique(rug_plot_data[:, 1]), [ale_eff.eff.min()])
+        # x position should always be plotted within the bin it belongs to
+        # (less than the upper bin limit and more than the lower bin limit)
+        self.assertTrue(
+            np.all(
+                ale_eff.index[
+                    pd.cut(self.X["x1"], ale_eff.index, include_lowest=True).cat.codes + 1
+                ]
+                > rug_plot_data[:, 0]
+            )
+            and np.all(
+                ale_eff.index[
+                    pd.cut(self.X["x1"], ale_eff.index, include_lowest=True).cat.codes
+                ]
+                < rug_plot_data[:, 0]
+            )
+        )
+    def test_1D_continuous_ci_plot(self):
+        ale_eff = aleplot_1D_continuous(
+            X=self.X, model=self.model, feature="x1", grid_size=5, include_CI=True
+        )
+        fig, ax = plot_1D_continuous_eff(ale_eff, self.X)
+        ci_plot_data = pd.DataFrame(ax.collections[0].get_paths()[0].vertices).drop_duplicates().groupby(0).agg(['min', 'max'])
+        ci_plot_data.index.name = 'x1'
+        ci_plot_data.columns = ['lowerCI_95%', 'upperCI_95%']
+        self.assertTrue(np.all(ale_eff.loc[ale_eff.index[1]:, ['lowerCI_95%', 'upperCI_95%']] == ci_plot_data))
+
+class TestDiscPlottingFun(Test1DFunctions):
+    def test_1D_continuous_line_plot(self):
+        ale_eff = aleplot_1D_discrete(
+            X=self.X, model=self.model, feature="x4", include_CI=True
+        )
+        fig, ax, ax2 = plot_1D_discrete_eff(ale_eff, self.X)
+        self.assertCountEqual(ax.lines[0].get_xydata()[:, 0], ale_eff.index)
+        self.assertCountEqual(ax.lines[0].get_xydata()[:, 1], ale_eff.eff)
+
+    def test_1D_continuous_ci_plot(self):
+        ale_eff = aleplot_1D_discrete(
+            X=self.X, model=self.model, feature="x4", include_CI=True
+        )
+        fig, ax, ax2 = plot_1D_discrete_eff(ale_eff, self.X)
+        self.assertCountEqual(np.round(ax.lines[1].get_xydata()[1:, 1], 8) , np.round(ale_eff['lowerCI_95%'][1:], 8))
+        self.assertCountEqual(np.round(ax.lines[2].get_xydata()[1:, 1], 8) , np.round(ale_eff['upperCI_95%'][1:], 8))
+
+    def test_1D_continuous_bar_plot(self):
+        ale_eff = aleplot_1D_discrete(
+            X=self.X, model=self.model, feature="x4", include_CI=True
+        )
+        fig, ax, ax2 = plot_1D_discrete_eff(ale_eff, self.X)
+        self.assertCountEqual(ale_eff['size'], [bar.get_height() for bar in ax2.patches])
 
 
 if __name__ == "__main__":

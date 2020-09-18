@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pickle
 from sklearn.ensemble import RandomForestRegressor
-from PyALE._src.ALE_2D import aleplot_2D_continuous
+from PyALE._src.ALE_2D import aleplot_2D_continuous, plot_2D_continuous_eff
 
 
 class Test2DFunctions(unittest.TestCase):
@@ -106,3 +106,9 @@ class Test2DFunctions(unittest.TestCase):
                 -0.39158206,
             ],
         )
+
+    def test_2D_continuous_grid_plot(self):
+        eff_grid = aleplot_2D_continuous(self.X, self.model, ['x1', 'x2'], grid_size=10)
+        fig, ax = plot_2D_continuous_eff(eff_grid, contour=False)
+        # values should equal the returned effects
+        self.assertTrue(np.all(np.array(eff_grid)==ax.images[0].get_array()))
