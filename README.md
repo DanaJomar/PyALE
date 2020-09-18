@@ -3,6 +3,9 @@
 **ALE**: Accumulated Local Effects <br>
 A python implementation of the ALE plots based on the implementation of the R package [ALEPlot](https://github.com/cran/ALEPlot/blob/master/R/ALEPlot.R) 
 
+## Installation:
+Via pip `pip install PyALE`
+
 ## Features:
 The end goal is to be able to create the ALE plots whether was the feature numeric or categorical.
 
@@ -68,7 +71,7 @@ ale_eff = ale(
     grid_size=50, 
     include_CI=False)
 ```
-![1D ALE Plot](examples/plots/1D_ALE_Plot_Ex_noCI.jpeg)
+![1D ALE Plot](https://raw.githubusercontent.com/DanaJomar/PyALE/master/examples/plots/1D_ALE_Plot_Ex_noCI.jpeg)
 
 The confidence intervals around the estimated effects are specially important when the sample data is small, which is why as an example plot for the confidence intervals we'll take a random sample of the dataset
 
@@ -85,7 +88,7 @@ ale_eff = ale(
     include_CI=True,
     C=0.95)
 ```
-![1D ALE Plot with CI](examples/plots/1D_ALE_Plot_Ex_withCI.jpeg)
+![1D ALE Plot with CI](https://raw.githubusercontent.com/DanaJomar/PyALE/master/examples/plots/1D_ALE_Plot_Ex_withCI.jpeg)
 
 * **1D ALE plot for numeric discrete features**
 
@@ -97,7 +100,7 @@ ale_eff = ale(
     feature=['cut'],
     feature_type='discrete')
 ```
-![1D ALE Plot Disc](examples/plots/1D_ALE_Plot_Discrete_Ex.jpeg)
+![1D ALE Plot Disc](https://raw.githubusercontent.com/DanaJomar/PyALE/master/examples/plots/1D_ALE_Plot_Discrete_Ex.jpeg)
 
 
 * **2D ALE plot for numeric features**
@@ -110,7 +113,7 @@ ale_eff = ale(
     feature=['z', 'table'],
     grid_size=100)
 ```
-![2D ALE Plot](examples/plots/2D_ALE_Plot_Ex.jpeg)
+![2D ALE Plot](https://raw.githubusercontent.com/DanaJomar/PyALE/master/examples/plots/2D_ALE_Plot_Ex.jpeg)
 
 Or sometimes it is better to take a look at the effect of each feature on its own but side by side
 For additional plot customization one can pass a figure and axis to the function
@@ -131,7 +134,7 @@ ale_res_2 = ale(
 ax1.set_xlabel("depth in mm (0–31.8)")
 ax2.set_xlabel("width of top of diamond relative to widest point (43–95)")
 ```
-![1D 2 ALE Plot](examples/plots/1D_ALE_Plot_2feat_Ex.jpeg)
+![1D 2 ALE Plot](https://raw.githubusercontent.com/DanaJomar/PyALE/master/examples/plots/1D_ALE_Plot_2feat_Ex.jpeg)
 
 ## Interpretation:
 
@@ -148,7 +151,7 @@ ale_contin = ale(
     C=0.95)
 ```
 
-![1D ALE Plot](examples/plots/interpretation_Ex.jpeg)
+![1D ALE Plot](https://raw.githubusercontent.com/DanaJomar/PyALE/master/examples/plots/interpretation_Ex.jpeg)
 
 For continuous variables the algorithm cuts the feature to bins starting from the minimum value and ending with the maximum value of the feature, then computes the average difference in prediction when the value of the feature moves between the edges of each bin, finally returns the centered cumulative sum of these averages (and the confidence interval of the differences - optional). 
 
@@ -180,7 +183,7 @@ ale_discr = ale(
     C=0.95)
 ```
 
-![1D ALE Plot](examples/plots/interpretation_discr_Ex.jpeg)
+![1D ALE Plot](https://raw.githubusercontent.com/DanaJomar/PyALE/master/examples/plots/interpretation_discr_Ex.jpeg)
 
 We can also think of it from the perspective of bins as follows, every bin contains two consecutive values (or categories) from the feature, for example with the `cut` feature the bins are `[0, 1]`, `[1, 2]`, `[2, 3]`, `[3, 4]`, and what interests us is still the difference in the effect between the edges of the bins, as well as the range in which this difference fluctuate when taking the confidence interval into consideration. That being said the `size` column contains the number of data points in this category (**not** ~~the size of the data sample in the bin~~ anymore), this means to get the sample size in the bin one has to sum up the sample size of each value in it (e.g., in `[0, 1]` there is 38 + 82 data points). The bars in the background of the generated plot shows the size of the sample in each category/value.
 
