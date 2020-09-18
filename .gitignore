@@ -6,5 +6,6 @@ __pycache__/
 
 # coverage
 .coverage
-htmlcov/
+!htmlcov/
+htmlcov/*
 !htmlcov/index.html
