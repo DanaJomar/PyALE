@@ -196,6 +196,18 @@ ale_discr
 | 3   | -29.779222  |  276  |  -39.234601  |  -20.323843 |
 | 4   |  69.394974  |  400  |   51.432901  |   87.357046 |
 
+## Development
+* Installing the package in edit mode could be done with `pip install -e`
+* `unittest` is used for running the tests 
+* `coverage` is used to get the code coverage, which is not an installation requirement of this package, however will be installed if the dev flag was added to pip call i.e., `pip install -e ".[dev]"`
+* To get the code coverage report run 
+    `coverage run -m --source=PyALE unittest discover -v` then 
+    * for a fast report in the shell : `coverage report`
+    * for a detailed html report: `coverage html`
+
+* The versions of the packages used during the development process are freezed in requirements.txt
+* The latest generated code coverage report could be found in [htmlcov/index.html](https://htmlpreview.github.io/?https://github.com/DanaJomar/PyALE/blob/master/htmlcov/index.html)
+
 ### Ref.
 * https://cran.r-project.org/web/packages/ALEPlot/vignettes/AccumulatedLocalEffectPlot.pdf
 * https://christophm.github.io/interpretable-ml-book/ale.html
