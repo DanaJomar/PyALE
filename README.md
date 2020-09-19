@@ -1,3 +1,5 @@
+[![PyPI version](https://badge.fury.io/py/PyALE.svg)](https://badge.fury.io/py/PyALE)
+
 # PyALE
 
 **ALE**: Accumulated Local Effects <br>
