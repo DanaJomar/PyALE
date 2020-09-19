@@ -12,7 +12,7 @@ jobs:
         python-version: 3.6
     - name: Build a binary wheel and a source tarball
       run: >-
-        python -m setup.py sdist bdist_wheel
+        python3 setup.py sdist bdist_wheel
     - name: Publish to Test PyPI
       uses: pypa/gh-action-pypi-publish@master
       with:
