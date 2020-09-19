@@ -1,15 +1,18 @@
-name: Publish PyALE to TestPyPI
+name: Publish PyALE to TestPyPI and PyPI (with new tags)
 on: push
 jobs:
   build-n-publish:
     name: Build and publish PyALE to TestPyPI
     runs-on: ubuntu-18.04
-     steps:
+    steps:
     - uses: actions/checkout@master
     - name: Set up Python 3.6
       uses: actions/setup-python@v1
       with:
         python-version: 3.6
+    - name: Install Wheel
+      run: >-
+        pip install wheel --user
     - name: Build a binary wheel and a source tarball
       run: >-
         python setup.py sdist bdist_wheel
@@ -18,3 +21,9 @@ jobs:
       with:
         password: ${{ secrets.test_pypi_password }}
         repository_url: https://test.pypi.org/legacy/
+        skip_existing: true
+    - name: Publish to PyPI with new tag
+      if: startsWith(github.ref, 'refs/tags')
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        password: ${{ secrets.pypi_password }}
