@@ -1,0 +1,20 @@
+name: Publish PyALE to TestPyPI
+on: push
+jobs:
+  build-n-publish:
+    name: Build and publish PyALE to TestPyPI
+    runs-on: ubuntu-18.04
+     steps:
+    - uses: actions/checkout@master
+    - name: Set up Python 3.6
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.6
+    - name: Build a binary wheel and a source tarball
+      run: >-
+        python setup.py sdist bdist_wheel
+    - name: Publish to Test PyPI
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        password: ${{ secrets.test_pypi_password }}
+        repository_url: https://test.pypi.org/legacy/
