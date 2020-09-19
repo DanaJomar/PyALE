@@ -1,4 +1,4 @@
-name: Publish PyALE to TestPyPI
+name: Publish PyALE to TestPyPI and PyPI (with new tags)
 on: push
 jobs:
   build-n-publish:
