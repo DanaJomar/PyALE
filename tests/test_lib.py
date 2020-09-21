@@ -33,16 +33,16 @@ class TestlibFunctions(unittest.TestCase):
             ke.exception.args[0], "k should be an integer <= D.shape[0] - 1"
         )
         self.assertEqual(cmds_res.shape, (10, 2))
-        self.assertCountEqual(cmds_res[0], [-0.2772000144859843, 0.3027310291867875])
+        self.assertCountEqual(np.round(cmds_res[0], 8), [-0.27720001, 0.30273103])
         self.assertCountEqual(
-            cmds_res[:3, 0],
-            [-0.2772000144859843, -0.12125997256720683, 0.2333385265163696],
+            np.round(cmds_res[:3, 0], 8),
+            [-0.27720001, -0.12125997,  0.23333853],
         )
 
     def test_quantile_ied(self):
         quantile_res = quantile_ied(self.X["x1"], np.array([0.1, 0.5, 0.9]))
         self.assertCountEqual(
-            quantile_res, [0.10025328868462047, 0.4665349091988452, 0.8831367664683842]
+            np.round(quantile_res.values, 8), [0.10025329, 0.46653491, 0.88313677]
         )
 
     def test_CI_estimate(self):
