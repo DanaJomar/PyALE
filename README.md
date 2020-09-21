@@ -215,4 +215,7 @@ ale_discr
 
 ### Ref.
 * https://cran.r-project.org/web/packages/ALEPlot/vignettes/AccumulatedLocalEffectPlot.pdf
+
 * https://christophm.github.io/interpretable-ml-book/ale.html
+
+  
