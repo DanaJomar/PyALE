@@ -213,7 +213,6 @@ ale_discr
     * for a detailed html report: `coverage html`
 
 * The versions of the packages used during the development process are freezed in requirements.txt
-* The latest generated code coverage report could be found in [htmlcov/index.html](https://htmlpreview.github.io/?https://github.com/DanaJomar/PyALE/blob/master/htmlcov/index.html)
 
 ### Ref.
 * https://cran.r-project.org/web/packages/ALEPlot/vignettes/AccumulatedLocalEffectPlot.pdf
