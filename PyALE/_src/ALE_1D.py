@@ -4,7 +4,7 @@ import random
 import matplotlib.pyplot as plt
 import matplotlib.transforms as mtrans
 
-from .lib import quantile_ied, CI_estimate
+from .lib import quantile_ied, CI_estimate, order_groups
 
 
 def aleplot_1D_continuous(X, model, feature, grid_size=20, include_CI=True, C=0.95):
@@ -125,6 +125,132 @@ def aleplot_1D_discrete(X, model, feature, include_CI=True, C=0.95):
     res_df = delta_df.groupby([feature]).mean()
     res_df["eff"] = res_df["eff"].cumsum()
     res_df.loc[0] = 0
+    res_df = res_df.sort_index()
+    res_df["eff"] = res_df["eff"] - sum(res_df["eff"] * groups_props)
+    res_df["size"] = groups_counts
+    if include_CI:
+        ci_est = delta_df.groupby([feature]).eff.agg(
+            [("CI_estimate", lambda x: CI_estimate(x, C=C))]
+        )
+        lowerCI_name = "lowerCI_" + str(int(C * 100)) + "%"
+        upperCI_name = "upperCI_" + str(int(C * 100)) + "%"
+        res_df[lowerCI_name] = res_df[["eff"]].subtract(ci_est["CI_estimate"], axis=0)
+        res_df[upperCI_name] = upperCI = res_df[["eff"]].add(
+            ci_est["CI_estimate"], axis=0
+        )
+    return res_df
+
+
+def aleplot_1D_categorical(
+    X, model, feature, encode_fun, predictors, include_CI=True, C=0.95
+):
+    """Compute the accumulated local effect of a categorical (or str) feature.
+    
+    The function computes the difference in prediction between the different groups
+    similar to the function aleplot_1D_discrete.
+    This function relies on an ordering of the unique values/groups of the feature, 
+    if the feature is not an ordered categorical, then an ordering is computed,
+    which orders the groups by their similarity based on the distribution of the 
+    other features in each group.
+    The function uses the given encoding function (for example a one-hot-encoding) 
+    and replaces the feature with the new generated (outputed) feature(s) before 
+    it calls the function model.predict.
+
+    Arguments:
+    X -- A pandas DataFrame containing all columns needed to pass to the model for 
+    prediction, however it should contain the original feature (before encoding) 
+    instead of the column(s) encoding it.
+    model -- Any python model with a predict method that accepts X as input.
+    feature -- String, the name of the column holding the feature being analysed.
+    encode_fun -- Function, a function used to encode the categorical feature, 
+    usually a one-hot encoder. The function should accept two arguments as input:
+        * a DataFrame with one column (the feature), and 
+        * a list or an array of the unique categories in the feature
+    and as output, the function should return a DataFrame with the new column(s) 
+    encoding the feature. It is also important that this function should be able 
+    to handle missing categories. More details on the use of this function could 
+    be found in README (https://github.com/DanaJomar/PyALE/blob/master/README.md)
+    predictors -- List or array of strings containing the names of features used 
+    in the model, and in the right order.
+    include_CI -- A boolean, if True the confidence interval of the effect is 
+    returned with the results. 
+    C -- A float the confidence level for which to compute the confidence interval
+    
+    Return: A pandas DataFrame containing for each value of the feature: the size 
+    of the sample in it and the accumulated centered effect around this value.
+    """
+    # if the values of the feature are not ordered, then order them by
+    # their similarity to each other, based on the distributions of the other
+    # features by group
+    if (X[feature].dtype.name != "category") or (not X[feature].cat.ordered):
+        X[feature] = X[feature].astype(str)
+        groups_order = order_groups(X, feature)
+        groups = groups_order.index.values
+        X[feature] = X[feature].astype(
+            pd.api.types.CategoricalDtype(categories=groups, ordered=True)
+        )
+
+    groups = X[feature].unique()
+    groups = groups.sort_values()
+    feature_codes = X[feature].cat.codes
+    groups_counts = X.groupby(feature).size()
+    groups_props = groups_counts / sum(groups_counts)
+
+    K = len(groups)
+
+    # create copies of the dataframe
+    X_plus = X.copy()
+    X_neg = X.copy()
+    # all groups except last one
+    last_group = groups[K - 1]
+    ind_plus = X[feature] != last_group
+    # all groups except first one
+    first_group = groups[0]
+    ind_neg = X[feature] != first_group
+    # replace once with one level up
+    X_plus.loc[ind_plus, feature] = groups[feature_codes[ind_plus] + 1]
+    # replace once with one level down
+    X_neg.loc[ind_neg, feature] = groups[feature_codes[ind_neg] - 1]
+
+    # predict with original and with the replaced values
+    # encode the categorical feature
+    X_coded = pd.concat(
+        [X.drop(feature, axis=1), encode_fun(X[[feature]], groups)], axis=1
+    )
+    # predict
+    y_hat = model.predict(X_coded[predictors])
+
+    # encode the categorical feature
+    X_plus_coded = pd.concat(
+        [X_plus.drop(feature, axis=1), encode_fun(X_plus[[feature]], groups)], axis=1
+    )
+    # predict
+    y_hat_plus = model.predict(X_plus_coded[ind_plus][predictors])
+
+    # encode the categorical feature
+    X_neg_coded = pd.concat(
+        [X_neg.drop(feature, axis=1), encode_fun(X_neg[[feature]], groups)], axis=1
+    )
+    # predict
+    y_hat_neg = model.predict(X_neg_coded[ind_neg][predictors])
+
+    # compute prediction difference
+    Delta_plus = y_hat_plus - y_hat[ind_plus]
+    Delta_neg = y_hat[ind_neg] - y_hat_neg
+
+    # compute the mean of the difference per group
+    delta_df = pd.concat(
+        [
+            pd.DataFrame(
+                {"eff": Delta_plus, feature: groups[feature_codes[ind_plus] + 1]}
+            ),
+            pd.DataFrame({"eff": Delta_neg, feature: groups[feature_codes[ind_neg]]}),
+        ]
+    )
+    res_df = delta_df.groupby([feature]).mean()
+    res_df["eff"] = res_df["eff"].cumsum()
+    res_df.loc[groups[0]] = 0
+    # sort the index (which is at this point an ordered categorical) as a safety measure
     res_df = res_df.sort_index()
     res_df["eff"] = res_df["eff"] - sum(res_df["eff"] * groups_props)
     res_df["size"] = groups_counts
