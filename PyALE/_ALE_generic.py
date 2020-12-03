@@ -1,10 +1,12 @@
 import numpy as np
 import pandas as pd
+import logging
 
 from ._src.ALE_1D import (
     aleplot_1D_continuous,
     plot_1D_continuous_eff,
     aleplot_1D_discrete,
+    aleplot_1D_categorical,
     plot_1D_discrete_eff,
 )
 from ._src.ALE_2D import aleplot_2D_continuous, plot_2D_continuous_eff
@@ -18,6 +20,8 @@ def ale(
     grid_size=20,
     include_CI=True,
     C=0.95,
+    encode_fun=None,
+    predictors=None,
     plot=True,
     contour=False,
     fig=None,
@@ -25,26 +29,28 @@ def ale(
 ):
     """Compute the accumulated local effect (ALE) of a feature on a model.
     
-    This function computes the effect of one (continuous or discrete) feature, or two features 
-    on a given model.
-    Some arguments in the function are relevant for a specific type of effect only, while others
-    are relevent for all types. Irrelevant arguments will be ignored.
+    This function computes the effect of one (continuous, discrete, or categorical) 
+    feature, or two features on a given model.
+    Some arguments in the function are relevant for a specific type of effect only,
+    while others are relevant for all types. Irrelevant arguments will be ignored.
     The table bellow shows which arguments are for which type of effect relevant, 
     and what is (if any) the default value for each. 
     
-    | Argument     | 1D continuous | 1D discrete | 2D (continuous) | Default  |
-    | ------------ | ------------  | ----------- | --------------- | -------- |
-    | X            |       x       |      x      |        x        |          |      
-    | model        |       x       |      x      |        x        |          |
-    | feature      |       x       |      x      |        x        |          |
-    | feature_type |       x       |      x      |                 |  'auto'  |
-    | grid_size    |       x       |             |        x        |    20    |
-    | include_CI   |       x       |      x      |                 |   True   |
-    | C            |       x       |      x      |                 |   0.95   |
-    | plot         |       x       |      x      |        x        |   True   |
-    | contour      |               |             |        x        |   False  |
-    | fig          |       x       |      x      |        x        |   None   |
-    | ax           |       x       |      x      |        x        |   None   |
+    |   Argument   | 1D continuous | 1D discrete | 1D categorical | 2D (continuous) |  Default |
+    | ------------ | ------------  | ----------- | -------------- | --------------- | -------- |
+    | X            |       x       |      x      |        x       |        x        |          |
+    | model        |       x       |      x      |        x       |        x        |          |
+    | feature      |       x       |      x      |        x       |        x        |          |
+    | feature_type |       x       |      x      |        x       |                 |  'auto'  |
+    | grid_size    |       x       |             |                |        x        |    20    |
+    | include_CI   |       x       |      x      |        x       |                 |   True   |
+    | C            |       x       |      x      |        x       |                 |   0.95   |
+    | encode_fun   |               |             |        x       |                 |   None   |
+    | predictors   |               |             |        x       |                 |   None   |
+    | plot         |       x       |      x      |        x       |        x        |   True   |
+    | contour      |               |             |                |        x        |   False  |
+    | fig          |       x       |      x      |        x       |        x        |   None   |
+    | ax           |       x       |      x      |        x       |        x        |   None   |
 
     Arguments:
     X 
@@ -57,57 +63,72 @@ def ale(
         the probability for two-class classification tasks).
     feature 
     ---- 
-        List of strings, the name of the column (or columns) holding the feature(s) to analyse, 
-        accepts at most two features.
+        List of strings, the name of the column (or columns) holding the feature(s)
+        to analyze, accepts at most two features.
     feature_type 
     ---- 
-        String, one of 'auto', 'discrete', or 'continuous' specifying the type of values
-        the feature has. Default is 'auto', if chosen then numeric features with unique values more 
-        than 10 will be considered continuous, everything else is considered discrete.
+        String, one of 'auto', 'discrete', 'continuous', or 'categorical' specifying 
+        the type of values the feature has. Default is 'auto', in this case:
+            * any non-numeric feature is considered categorical
+            * for numeric features the number of unique values is tested, if it's 
+            at most 0.2% of sample size (i.e. #uniqueValues/#samples <= 0.002) 
+            then the feature is considered discrete, otherwise it's continuous.
     grid_size 
     ---- 
-        An integer indicating the number of intervals into which the feature range is divided.
+        An integer indicating the number of intervals into which the feature range
+        is divided.
     include_CI 
     ---- 
-        A boolean, if True the confidence interval of the effect is returned with the results. 
+        A boolean, if True the confidence interval of the effect is returned with 
+        the results. 
     C 
     ----
         A float, the confidence level for which to compute the confidence interval.
+    encode_fun
+    ---- 
+        Function, used to encode the categorical feature, usually a  one-hot encoder. 
+        The function's input and output are as follows
+            * input: a DataFrame with one column (the feature)
+            * output: a DataFrame with the new column(s) encoding the feature. 
+        It is also important that this function should be able to handle missing 
+        categories (for example, a one-hot-encoder applied to a column, in which not 
+        all categories occur, should add a column of zeros for each missing category). 
+        Examples of use of this function could be found in the README file in github 
+        or in the description of the package in PyPI https://pypi.org/project/PyALE/.
+    predictors
+    ---- 
+        List or array of strings containing the names of features used in the model,
+        and in the right order.
     plot 
     ---- 
         A boolean indicating whether to plot the effects or not.
     contour 
     ---- 
-        A boolean indicating if the heatmap for 2D effects should have labeled contours over it.
+        A boolean indicating if the heatmap for 2D effects should have labeled 
+        contours over it.
     fig, ax 
     ---- 
         matplotlib figure and axis.
     
     Return:
-        For 1D effects: A pandas DataFrame containing for each bin or value: the size of the sample 
-        in it, the accumulated centered effect, and the confidence interval of the effect 
-        if include_CI is True.
-        For 2D effects: A grid of effects as a pandas DataFrame containing for each bin in the grid 
-        the accumulated centered effect of this bin.
+        For 1D effects: A pandas DataFrame containing for each bin or value: the 
+        size of the sample in it, the accumulated centered effect, and the 
+        confidence interval of the effect if include_CI is True.
+        For 2D effects: A grid of effects as a pandas DataFrame containing for 
+        each bin in the grid the accumulated centered effect of this bin.
     """
-    # parameter checks
+    # general checks
     if not isinstance(X, pd.DataFrame):
         raise Exception("The arguemnt 'X' must be a pandas DataFrame")
-    try:
-        model.predict(X.iloc[0:1, :])
-    except:
-        exc_msg = """
-        The argument 'model' should be a python model with a predict method 
-        that accepts X as input
-        """
-        raise Exception(exc_msg)
+    if not hasattr(model, 'predict'):
+        raise Exception("The passed model does not seem to have a predict method.")
     if (not isinstance(feature, list)) | (
         np.any([not isinstance(x, str) for x in feature])
     ) | len(feature) > 2:
         raise Exception(
-            "The arguemnt 'feature' must be a list of at most two feature names (strings)"
+            """The arguemnt 'feature' must be a list of at most two feature 
+            names (strings)"""
         )
-
     if np.any([not x in X.columns for x in feature]):
         raise Exception(
             "Feature(s) {} was(were) not found in the column names of X".format(
@@ -115,9 +136,10 @@ def ale(
             )
         )
 
-    if feature_type not in ["auto", "continuous", "discrete"]:
+    if feature_type not in ["auto", "continuous", "discrete", "categorical"]:
         raise Exception(
-            "The argument 'feature_type' should be 'auto', 'continuous', or 'discrete'"
+            "The argument 'feature_type' should be 'auto', 'continuous', "
+            "'discrete', or 'categorical'"
         )
 
     # if one feature is given
@@ -132,14 +154,18 @@ def ale(
         # check feature type
         # assign feature type if not given
         if feature_type == "auto":
+            logging.info("Detecteing feature type ....")
             if X.loc[:, feature].dtype.kind in "iuf":
                 # https://numpy.org/doc/stable/reference/generated/numpy.dtype.kind.html
-                if feat_values_unique < 11:
+                if feat_values_unique/X.shape[0] <= 0.002:
                     feature_type = "discrete"
+                    logging.info("Discrete feature detected.")
                 else:
                     feature_type = "continuous"
+                    logging.info("Continuous feature detected.")
             else:
-                feature_type = "discrete"
+                feature_type = "categorical"
+                logging.info("categorical feature detected.")
         # if the feature is continuous
         if feature_type == "continuous":
             arg_eff = {
@@ -172,6 +198,35 @@ def ale(
                 "ax": ax,
             }
             alefeat_fun = aleplot_1D_discrete
+            plot_fun = plot_1D_discrete_eff
+        # if the feature is categorical
+        elif feature_type == "categorical":
+            # check if the special parameters are given
+            if encode_fun is None :
+                raise Exception(
+                    "Argument 'encode_fun' not given. With categorical/string "
+                    "features, an encoding function should be provided."
+                    )
+            if predictors is None :
+                raise Exception(
+                    "Argument 'predictors' not given. With categorical/string "
+                    "features, a list of predictors (column names) should be provided."
+                    )
+            arg_eff = {
+                "X": X,
+                "model": model,
+                "feature": feature,
+                "encode_fun":encode_fun, 
+                "predictors":predictors,
+                "include_CI": include_CI,
+                "C": C,
+            }
+            arg_plot = {
+                "X": X,
+                "fig": fig,
+                "ax": ax,
+            }
+            alefeat_fun = aleplot_1D_categorical
             plot_fun = plot_1D_discrete_eff
     # if two features are given
     elif len(feature) == 2:
