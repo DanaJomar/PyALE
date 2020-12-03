@@ -162,14 +162,16 @@ def aleplot_1D_categorical(
     instead of the column(s) encoding it.
     model -- Any python model with a predict method that accepts X as input.
     feature -- String, the name of the column holding the feature being analysed.
-    encode_fun -- Function, a function used to encode the categorical feature, 
-    usually a one-hot encoder. The function should accept two arguments as input:
-        * a DataFrame with one column (the feature), and 
-        * a list or an array of the unique categories in the feature
-    and as output, the function should return a DataFrame with the new column(s) 
-    encoding the feature. It is also important that this function should be able 
-    to handle missing categories. More details on the use of this function could 
-    be found in README (https://github.com/DanaJomar/PyALE/blob/master/README.md)
+    encode_fun -- Function, used to encode the categorical feature, usually a 
+    one-hot encoder. The function's input and output are as follows
+        * input: a DataFrame with one column (the feature)
+        * output: a DataFrame with the new column(s) encoding the feature. 
+        It is also important that this function should be able to handle missing 
+        categories (for example, a one-hot-encoder applied to a column, in which
+        not all categories occur, should add a column of zeros for each missing 
+        category). Examples of use of this function could be found in the README 
+        file in github or in the description of the package in PyPI 
+        https://pypi.org/project/PyALE/.
     predictors -- List or array of strings containing the names of features used 
     in the model, and in the right order.
     include_CI -- A boolean, if True the confidence interval of the effect is 
@@ -215,21 +217,21 @@ def aleplot_1D_categorical(
     # predict with original and with the replaced values
     # encode the categorical feature
     X_coded = pd.concat(
-        [X.drop(feature, axis=1), encode_fun(X[[feature]], groups)], axis=1
+        [X.drop(feature, axis=1), encode_fun(X[[feature]])], axis=1
     )
     # predict
     y_hat = model.predict(X_coded[predictors])
 
     # encode the categorical feature
     X_plus_coded = pd.concat(
-        [X_plus.drop(feature, axis=1), encode_fun(X_plus[[feature]], groups)], axis=1
+        [X_plus.drop(feature, axis=1), encode_fun(X_plus[[feature]])], axis=1
     )
     # predict
     y_hat_plus = model.predict(X_plus_coded[ind_plus][predictors])
 
     # encode the categorical feature
     X_neg_coded = pd.concat(
-        [X_neg.drop(feature, axis=1), encode_fun(X_neg[[feature]], groups)], axis=1
+        [X_neg.drop(feature, axis=1), encode_fun(X_neg[[feature]])], axis=1
     )
     # predict
     y_hat_neg = model.predict(X_neg_coded[ind_neg][predictors])
