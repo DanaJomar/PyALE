@@ -70,9 +70,11 @@ def ale(
         String, one of 'auto', 'discrete', 'continuous', or 'categorical' specifying 
         the type of values the feature has. Default is 'auto', in this case:
             * any non-numeric feature is considered categorical
-            * for numeric features the number of unique values is tested, if it's 
-            at most 0.2% of sample size (i.e. #uniqueValues/#samples <= 0.002) 
-            then the feature is considered discrete, otherwise it's continuous.
+            * for numeric features the number of unique values is tested, if the  
+            the feature has less than 11 unique values or at most 0.2% of sample 
+            size (i.e. #uniqueValues/#samples <= 0.002, that is 20 values for a  
+            sample of 10,000) then the feature is considered discrete, otherwise 
+            it's continuous.
     grid_size 
     ---- 
         An integer indicating the number of intervals into which the feature range
@@ -126,8 +128,8 @@ def ale(
         np.any([not isinstance(x, str) for x in feature])
     ) | len(feature) > 2:
         raise Exception(
-            """The arguemnt 'feature' must be a list of at most two feature 
-            names (strings)"""
+            "The arguemnt 'feature' must be a list of at most two feature" 
+            " names (strings)"
         )
     if np.any([not x in X.columns for x in feature]):
         raise Exception(
@@ -157,7 +159,7 @@ def ale(
             logging.info("Detecteing feature type ....")
             if X.loc[:, feature].dtype.kind in "iuf":
                 # https://numpy.org/doc/stable/reference/generated/numpy.dtype.kind.html
-                if feat_values_unique/X.shape[0] <= 0.002:
+                if (feat_values_unique <= 10) | (feat_values_unique/X.shape[0] <= 0.002):
                     feature_type = "discrete"
                     logging.info("Discrete feature detected.")
                 else:
