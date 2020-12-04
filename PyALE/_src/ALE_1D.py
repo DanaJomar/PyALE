@@ -42,8 +42,11 @@ def aleplot_1D_continuous(X, model, feature, grid_size=20, include_CI=True, C=0.
     X2 = X.copy()
     X1[feature] = [bins[i] for i in bin_codes]
     X2[feature] = [bins[i + 1] for i in bin_codes]
-    y_1 = model.predict(X1).ravel()
-    y_2 = model.predict(X2).ravel()
+    try:
+        y_1 = model.predict(X1).ravel()
+        y_2 = model.predict(X2).ravel()
+    except Exception as ex:
+        raise Exception("Please check that your model is fitted, and accepts X as input.")
 
     delta_df = pd.DataFrame({feature: bins[bin_codes + 1], "Delta": y_2 - y_1})
     res_df = delta_df.groupby([feature]).Delta.agg([("eff", "mean"), "size"])
@@ -107,10 +110,14 @@ def aleplot_1D_discrete(X, model, feature, include_CI=True, C=0.95):
     X_plus.loc[ind_plus, feature] = groups[X.loc[ind_plus, feature] + 1]
     # replace once with one level down
     X_neg.loc[ind_neg, feature] = groups[X.loc[ind_neg, feature] - 1]
-    # predict with original and with the replaced values
-    y_hat = model.predict(X)
-    y_hat_plus = model.predict(X_plus[ind_plus])
-    y_hat_neg = model.predict(X_neg[ind_neg])
+    try:
+        # predict with original and with the replaced values
+        y_hat = model.predict(X)
+        y_hat_plus = model.predict(X_plus[ind_plus])
+        y_hat_neg = model.predict(X_neg[ind_neg])
+    except Exception as ex:
+        raise Exception("Please check that your model is fitted, and accepts X as input.")
+
     # compute prediction difference
     Delta_plus = y_hat_plus - y_hat[ind_plus]
     Delta_neg = y_hat[ind_neg] - y_hat_neg
@@ -213,28 +220,39 @@ def aleplot_1D_categorical(
     X_plus.loc[ind_plus, feature] = groups[feature_codes[ind_plus] + 1]
     # replace once with one level down
     X_neg.loc[ind_neg, feature] = groups[feature_codes[ind_neg] - 1]
-
-    # predict with original and with the replaced values
-    # encode the categorical feature
-    X_coded = pd.concat(
-        [X.drop(feature, axis=1), encode_fun(X[[feature]])], axis=1
-    )
-    # predict
-    y_hat = model.predict(X_coded[predictors])
-
-    # encode the categorical feature
-    X_plus_coded = pd.concat(
-        [X_plus.drop(feature, axis=1), encode_fun(X_plus[[feature]])], axis=1
-    )
-    # predict
-    y_hat_plus = model.predict(X_plus_coded[ind_plus][predictors])
-
-    # encode the categorical feature
-    X_neg_coded = pd.concat(
-        [X_neg.drop(feature, axis=1), encode_fun(X_neg[[feature]])], axis=1
-    )
-    # predict
-    y_hat_neg = model.predict(X_neg_coded[ind_neg][predictors])
+    try:
+        # predict with original and with the replaced values
+        # encode the categorical feature
+        X_coded = pd.concat(
+            [X.drop(feature, axis=1), encode_fun(X[[feature]])], axis=1
+        )
+        # predict
+        y_hat = model.predict(X_coded[predictors])
+    
+        # encode the categorical feature
+        X_plus_coded = pd.concat(
+            [X_plus.drop(feature, axis=1), encode_fun(X_plus[[feature]])], axis=1
+        )
+        # predict
+        y_hat_plus = model.predict(X_plus_coded[ind_plus][predictors])
+    
+        # encode the categorical feature
+        X_neg_coded = pd.concat(
+            [X_neg.drop(feature, axis=1), encode_fun(X_neg[[feature]])], axis=1
+        )
+        # predict
+        y_hat_neg = model.predict(X_neg_coded[ind_neg][predictors])
+    except Exception as ex:
+        raise Exception(
+            """There seems to be a problem when predicting with the model.
+            Please check the following: 
+                - Your model is fitted.
+                - The list of predictors contains the names of all the features"""
+            """ used for training the model.
+                - The encoding function takes the raw feature and returns the"""
+            """ right columns encoding it, including the case of a missing category.
+            """
+            )
 
     # compute prediction difference
     Delta_plus = y_hat_plus - y_hat[ind_plus]
