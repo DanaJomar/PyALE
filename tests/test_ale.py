@@ -4,8 +4,23 @@ import pandas as pd
 import pickle
 import unittest
 from unittest.mock import patch
+from sklearn.preprocessing import OneHotEncoder
 
 from PyALE._ALE_generic import ale
+
+def onehot_encode(feat):
+    ohe = OneHotEncoder().fit(feat)
+    col_names = ohe.categories_[0]
+    feat_coded = pd.DataFrame(ohe.transform(feat).toarray())
+    feat_coded.columns = col_names
+    return feat_coded
+    
+def onehot_encode_custom(feat, groups=['A', 'C', 'B']):
+    feat_coded = onehot_encode(feat)
+    missing_feat = [x for x in groups if x not in feat_coded.columns]
+    if missing_feat:
+        feat_coded[missing_feat] = 0
+    return feat_coded
 
 
 class Testale(unittest.TestCase):
@@ -47,6 +62,22 @@ class Testale(unittest.TestCase):
         # C (the level of confidence interval)
         with self.assertRaises(Exception) as c_ex:
             ale(self.X_cleaned, self.model, ["x1"], include_CI=True, C=95)
+        # categorical featrue without predictors
+        with self.assertRaises(Exception) as cat_ex_1:
+            result = ale(
+                X=self.X,
+                model=self.model,
+                feature=["x5"],
+                encode_fun=onehot_encode_custom,
+            )
+        # categorical featrue without encoding fucntion
+        with self.assertRaises(Exception) as cat_ex_2:
+            result = ale(
+                X=self.X,
+                model=self.model,
+                feature=["x5"],
+                predictors=self.X_cleaned.columns,
+            )
 
         df_ex_msg = "The arguemnt 'X' must be a pandas DataFrame"
         self.assertEqual(df_ex.exception.args[0], df_ex_msg)
@@ -75,6 +106,17 @@ class Testale(unittest.TestCase):
             "The argument 'C' (confidence level) should be a value between 0 and 1"
         )
         self.assertEqual(c_ex.exception.args[0], c_ex_msg)
+        
+        cat_ex_1_msg = (
+                    "Argument 'predictors' not given. With categorical/string "
+                    "features, a list of predictors (column names) should be provided."
+                )
+        self.assertEqual(cat_ex_1.exception.args[0], cat_ex_1_msg)
+        cat_ex_2_msg = (
+                    "Argument 'encode_fun' not given. With categorical/string "
+                    "features, an encoding function should be provided."
+                )
+        self.assertEqual(cat_ex_2.exception.args[0], cat_ex_2_msg)
 
     def test_auto_calls_1D_continuous(self):
         with patch("PyALE._ALE_generic.aleplot_1D_continuous") as mock:
@@ -194,6 +236,19 @@ class Testale(unittest.TestCase):
                 plot=True,
             )
             mock.assert_called_once_with(result, X=self.X_cleaned, fig=None, ax=None)
+        
+        with patch("PyALE._ALE_generic.plot_1D_discrete_eff") as mock:
+            result = ale(
+                X=self.X,
+                model=self.model,
+                feature=["x5"],
+                feature_type="auto",
+                predictors=self.X_cleaned.columns,
+                encode_fun=onehot_encode_custom,
+                include_CI=True,
+                plot=True,
+            )
+            mock.assert_called_once_with(result, X=self.X, fig=None, ax=None)
 
     def test_2D_continuous_plot_called(self):
         with patch("PyALE._ALE_generic.plot_2D_continuous_eff") as mock:

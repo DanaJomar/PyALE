@@ -4,13 +4,28 @@ import numpy as np
 import pandas as pd
 import pickle
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.preprocessing import OneHotEncoder
 from PyALE._src.ALE_1D import (
     aleplot_1D_continuous,
     plot_1D_continuous_eff,
     aleplot_1D_discrete,
+    aleplot_1D_categorical,
     plot_1D_discrete_eff,
 )
 
+def onehot_encode(feat):
+    ohe = OneHotEncoder().fit(feat)
+    col_names = ohe.categories_[0]
+    feat_coded = pd.DataFrame(ohe.transform(feat).toarray())
+    feat_coded.columns = col_names
+    return feat_coded
+    
+def onehot_encode_custom(feat, groups=['A', 'C', 'B']):
+    feat_coded = onehot_encode(feat)
+    missing_feat = [x for x in groups if x not in feat_coded.columns]
+    if missing_feat:
+        feat_coded[missing_feat] = 0
+    return feat_coded
 
 class Test1DFunctions(unittest.TestCase):
     def setUp(self):
@@ -246,108 +261,146 @@ class Test1Ddiscrete(Test1DFunctions):
 
 
 class Test1Ddiscrete(Test1DFunctions):
-    assert True
-    # def test_indexname(self):
-    #     ale_eff = aleplot_1D_discrete(
-    #         X=self.X, model=self.model, feature="x4", include_CI=False
-    #     )
-    #     self.assertEqual(ale_eff.index.name, "x4")
-    #
-    # def test_outputshape_noCI(self):
-    #     ale_eff = aleplot_1D_discrete(
-    #         X=self.X, model=self.model, feature="x4", include_CI=False
-    #     )
-    #     self.assertEqual(ale_eff.shape, (10, 2))
-    #     self.assertCountEqual(ale_eff.columns, ["eff", "size"])
-    #
-    # def test_outputshape_withCI(self):
-    #     ale_eff = aleplot_1D_discrete(
-    #         X=self.X, model=self.model, feature="x4", include_CI=True, C=0.9
-    #     )
-    #     self.assertEqual(ale_eff.shape, (10, 4))
-    #     self.assertCountEqual(
-    #         ale_eff.columns, ["eff", "size", "lowerCI_90%", "upperCI_90%"]
-    #     )
-    #
-    # def test_bins(self):
-    #     ale_eff = aleplot_1D_discrete(
-    #         X=self.X, model=self.model, feature="x4", include_CI=False
-    #     )
-    #     self.assertCountEqual(
-    #         ale_eff.index, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-    #     )
-    #
-    # def test_effvalues(self):
-    #     ale_eff = aleplot_1D_discrete(
-    #         X=self.X, model=self.model, feature="x4", include_CI=False
-    #     )
-    #     self.assertCountEqual(
-    #         np.round(ale_eff.loc[:, "eff"], 8),
-    #         [
-    #             -1.20935606,
-    #             -0.82901158,
-    #             -0.42415507,
-    #             -0.24192617,
-    #             0.04098572,
-    #             0.32370623,
-    #             0.56468117,
-    #             0.61378063,
-    #             0.6786663,
-    #             0.69330051,
-    #         ],
-    #     )
-    #
-    # def test_binsizes(self):
-    #     ale_eff = aleplot_1D_discrete(
-    #         X=self.X, model=self.model, feature="x4", include_CI=False
-    #     )
-    #     self.assertCountEqual(
-    #         ale_eff.loc[:, "size"], [27, 14, 16, 26, 20, 17, 18, 23, 21, 18]
-    #     )
-    #
-    # def test_CIvalues(self):
-    #     ale_eff = aleplot_1D_discrete(
-    #         X=self.X, model=self.model, feature="x4", include_CI=True, C=0.9
-    #     )
-    #     # assert that the first bin do not have a CI
-    #     self.assertTrue(np.isnan(ale_eff.loc[ale_eff.index[0], "lowerCI_90%"]))
-    #     self.assertTrue(np.isnan(ale_eff.loc[ale_eff.index[0], "upperCI_90%"]))
-    #     # check the values of the CI
-    #     self.assertCountEqual(
-    #         np.round(ale_eff.loc[ale_eff.index[1] :, "lowerCI_90%"], 8),
-    #         [
-    #             -0.91916875,
-    #             -0.54755861,
-    #             -0.29067159,
-    #             -0.04528913,
-    #             0.2512252,
-    #             0.48115024,
-    #             0.58654446,
-    #             0.65270079,
-    #             0.66807024,
-    #         ],
-    #     )
-    #     self.assertCountEqual(
-    #         np.round(ale_eff.loc[ale_eff.index[1] :, "upperCI_90%"], 8),
-    #         [
-    #             -0.73885441,
-    #             -0.30075154,
-    #             -0.19318075,
-    #             0.12726056,
-    #             0.39618726,
-    #             0.6482121,
-    #             0.64101679,
-    #             0.70463181,
-    #             0.71853079,
-    #         ],
-    #     )
-    # def test_exceptions(self):
-    #     mod_not_fit = RandomForestRegressor()
-    #     # dataset should be compatible with the model
-    #     with self.assertRaises(Exception) as mod_ex_2:
-    #         aleplot_1D_discrete(self.X, mod_not_fit, "x4")
-    #     mod_ex_msg = "Please check that your model is fitted, and accepts X as input."
-    #     self.assertEqual(mod_ex_2.exception.args[0], mod_ex_msg)
+    def test_indexname(self):
+        ale_eff = aleplot_1D_categorical(
+            X=self.X, 
+            model=self.model,
+            feature="x5", 
+            predictors=self.X_cleaned.columns,
+            encode_fun=onehot_encode_custom, 
+            include_CI=False
+        )
+        self.assertEqual(ale_eff.index.name, "x5")
+
+    def test_outputshape_noCI(self):
+        ale_eff = aleplot_1D_categorical(
+            X=self.X, 
+            model=self.model,
+            feature="x5", 
+            predictors=self.X_cleaned.columns,
+            encode_fun=onehot_encode_custom, 
+            include_CI=False
+        )
+        self.assertEqual(ale_eff.shape, (3, 2))
+        self.assertCountEqual(ale_eff.columns, ["eff", "size"])
+
+    def test_outputshape_withCI(self):
+        ale_eff = aleplot_1D_categorical(
+            X=self.X, 
+            model=self.model,
+            feature="x5", 
+            predictors=self.X_cleaned.columns,
+            encode_fun=onehot_encode_custom, 
+            include_CI=True,
+            C=0.9
+        )
+        self.assertEqual(ale_eff.shape, (3, 4))
+        self.assertCountEqual(
+            ale_eff.columns, ["eff", "size", "lowerCI_90%", "upperCI_90%"]
+        )
+
+    def test_bins(self):
+        ale_eff = aleplot_1D_categorical(
+            X=self.X, 
+            model=self.model,
+            feature="x5", 
+            predictors=self.X_cleaned.columns,
+            encode_fun=onehot_encode_custom, 
+            include_CI=False
+        )
+        self.assertCountEqual(
+            ale_eff.index, ['A', 'B', 'C'],
+        )
+
+    def test_effvalues(self):
+        ale_eff = aleplot_1D_categorical(
+            X=self.X, 
+            model=self.model,
+            feature="x5", 
+            predictors=self.X_cleaned.columns,
+            encode_fun=onehot_encode_custom, 
+            include_CI=False
+        )
+        self.assertCountEqual(
+            np.round(ale_eff.loc[:, "eff"], 8),
+            [-0.05565697,  0.02367971,  0.02044105],
+        )
+
+    def test_binsizes(self):
+        ale_eff = aleplot_1D_categorical(
+            X=self.X, 
+            model=self.model,
+            feature="x5", 
+            predictors=self.X_cleaned.columns,
+            encode_fun=onehot_encode_custom, 
+            include_CI=False
+        )
+        self.assertCountEqual(
+            ale_eff.loc[:, "size"], [57, 77, 66]
+        )
+
+    def test_CIvalues(self):
+        ale_eff = aleplot_1D_categorical(
+            X=self.X, 
+            model=self.model,
+            feature="x5", 
+            predictors=self.X_cleaned.columns,
+            encode_fun=onehot_encode_custom, 
+            include_CI=True,
+            C=0.9
+        )
+        # assert that the first bin do not have a CI
+        self.assertTrue(np.isnan(ale_eff.loc[ale_eff.index[0], "lowerCI_90%"]))
+        self.assertTrue(np.isnan(ale_eff.loc[ale_eff.index[0], "upperCI_90%"]))
+        # check the values of the CI
+        self.assertCountEqual(
+            np.round(ale_eff.loc[ale_eff.index[1] :, "lowerCI_90%"], 8),
+            [-0.00605249, -0.00523023],
+        )
+        self.assertCountEqual(
+            np.round(ale_eff.loc[ale_eff.index[1] :, "upperCI_90%"], 8),
+            [0.05341192, 0.04611233],
+        )
+    def test_exceptions(self):
+        mod_not_fit = RandomForestRegressor()
+        # dataset should be compatible with the model
+        with self.assertRaises(Exception) as mod_ex_1:
+            aleplot_1D_categorical(
+                X=self.X, 
+                model=self.model.predict,
+                feature="x5", 
+                predictors=self.X_cleaned.columns,
+                encode_fun=onehot_encode_custom,
+                )
+        with self.assertRaises(Exception) as mod_ex_2:
+            aleplot_1D_categorical(
+                X=self.X, 
+                model=self.model,
+                feature="x5", 
+                predictors=self.X.columns,
+                encode_fun=onehot_encode_custom,
+                )
+        with self.assertRaises(Exception) as mod_ex_3:
+            aleplot_1D_categorical(
+                X=self.X, 
+                model=self.model,
+                feature="x5", 
+                predictors=self.X_cleaned.columns,
+                encode_fun=onehot_encode,
+                )
+        mod_ex_msg = (
+            """There seems to be a problem when predicting with the model.
+            Please check the following: 
+                - Your model is fitted.
+                - The list of predictors contains the names of all the features"""
+            """ used for training the model.
+                - The encoding function takes the raw feature and returns the"""
+            """ right columns encoding it, including the case of a missing category.
+            """
+        )
+        self.assertEqual(mod_ex_1.exception.args[0], mod_ex_msg)
+        self.assertEqual(mod_ex_2.exception.args[0], mod_ex_msg)
+        self.assertEqual(mod_ex_3.exception.args[0], mod_ex_msg)
 
 
 class TestContPlottingFun(Test1DFunctions):
