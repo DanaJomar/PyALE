@@ -14,13 +14,13 @@ def cmds(D, k=2):
     Arguments:
     D -- A squared matrix-like object (array, DataFrame, ....), usually a distance matrix
     """
-    
+
     n = D.shape[0]
-    if D.shape[0] != D.shape[1] :
+    if D.shape[0] != D.shape[1]:
         raise Exception("The matrix D should be squared")
     if k > (n - 1):
         raise Exception("k should be an integer <= D.shape[0] - 1")
-    
+
     # (1) Set up the squared proximity matrix
     D_double = np.square(D)
     # (2) Apply double centering: using the centering matrix

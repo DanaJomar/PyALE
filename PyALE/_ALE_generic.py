@@ -122,13 +122,13 @@ def ale(
     # general checks
     if not isinstance(X, pd.DataFrame):
         raise Exception("The arguemnt 'X' must be a pandas DataFrame")
-    if not hasattr(model, 'predict'):
+    if not hasattr(model, "predict"):
         raise Exception("The passed model does not seem to have a predict method.")
     if (not isinstance(feature, list)) | (
         np.any([not isinstance(x, str) for x in feature])
     ) | len(feature) > 2:
         raise Exception(
-            "The arguemnt 'feature' must be a list of at most two feature" 
+            "The arguemnt 'feature' must be a list of at most two feature"
             " names (strings)"
         )
     if np.any([not x in X.columns for x in feature]):
@@ -159,7 +159,9 @@ def ale(
             logging.info("Detecteing feature type ....")
             if X.loc[:, feature].dtype.kind in "iuf":
                 # https://numpy.org/doc/stable/reference/generated/numpy.dtype.kind.html
-                if (feat_values_unique <= 10) | (feat_values_unique/X.shape[0] <= 0.002):
+                if (feat_values_unique <= 10) | (
+                    feat_values_unique / X.shape[0] <= 0.002
+                ):
                     feature_type = "discrete"
                     logging.info("Discrete feature detected.")
                 else:
@@ -204,22 +206,22 @@ def ale(
         # if the feature is categorical
         elif feature_type == "categorical":
             # check if the special parameters are given
-            if encode_fun is None :
+            if encode_fun is None:
                 raise Exception(
                     "Argument 'encode_fun' not given. With categorical/string "
                     "features, an encoding function should be provided."
-                    )
-            if predictors is None :
+                )
+            if predictors is None:
                 raise Exception(
                     "Argument 'predictors' not given. With categorical/string "
                     "features, a list of predictors (column names) should be provided."
-                    )
+                )
             arg_eff = {
                 "X": X,
                 "model": model,
                 "feature": feature,
-                "encode_fun":encode_fun, 
-                "predictors":predictors,
+                "encode_fun": encode_fun,
+                "predictors": predictors,
                 "include_CI": include_CI,
                 "C": C,
             }

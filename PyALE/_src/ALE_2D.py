@@ -6,6 +6,7 @@ from sklearn.neighbors import NearestNeighbors
 
 from .lib import quantile_ied
 
+
 def aleplot_2D_continuous(X, model, features, grid_size=40):
     """Compute the two dimentional accumulated local effect of a two numeric continuous features.
     
