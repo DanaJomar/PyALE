@@ -15,13 +15,16 @@ from PyALE._src.ALE_1D import (
 class Test1DFunctions(unittest.TestCase):
     def setUp(self):
         path_to_fixtures = os.path.join(os.path.dirname(__file__), "fixtures")
-        np.random.seed(876)
-        x1 = np.random.uniform(low=0, high=1, size=200)
-        x2 = np.random.uniform(low=0, high=1, size=200)
-        x3 = np.random.uniform(low=0, high=1, size=200)
-        x4 = np.random.choice(range(10), 200)
-        self.y = x1 + 2 * x2 ** 2 + np.log(x4 + 1) + np.random.normal(size=200)
-        self.X = pd.DataFrame({"x1": x1, "x2": x2, "x3": x3, "x4": x4})
+        with open(os.path.join(path_to_fixtures, "X.pickle"), "rb") as model_pickle:
+            self.X = pickle.load(model_pickle)
+        with open(
+            os.path.join(path_to_fixtures, "X_cleaned.pickle"), "rb"
+        ) as model_pickle:
+            self.X_cleaned = pickle.load(model_pickle)
+        with open(os.path.join(path_to_fixtures, "y.npy"), "rb") as y_npy:
+            self.y = np.load(y_npy)
+        with open(os.path.join(path_to_fixtures, "model.pickle"), "rb") as model_pickle:
+            self.model = pickle.load(model_pickle)
         with open(os.path.join(path_to_fixtures, "model.pickle"), "rb") as model_pickle:
             self.model = pickle.load(model_pickle)
 
@@ -29,20 +32,28 @@ class Test1DFunctions(unittest.TestCase):
 class Test1DContinuous(Test1DFunctions):
     def test_indexname(self):
         ale_eff = aleplot_1D_continuous(
-            X=self.X, model=self.model, feature="x1", grid_size=5, include_CI=False
+            X=self.X_cleaned,
+            model=self.model,
+            feature="x1",
+            grid_size=5,
+            include_CI=False,
         )
         self.assertEqual(ale_eff.index.name, "x1")
 
     def test_outputshape_noCI(self):
         ale_eff = aleplot_1D_continuous(
-            X=self.X, model=self.model, feature="x1", grid_size=5, include_CI=False
+            X=self.X_cleaned,
+            model=self.model,
+            feature="x1",
+            grid_size=5,
+            include_CI=False,
         )
         self.assertEqual(ale_eff.shape, (6, 2))
         self.assertCountEqual(ale_eff.columns, ["eff", "size"])
 
     def test_outputshape_withCI(self):
         ale_eff = aleplot_1D_continuous(
-            X=self.X,
+            X=self.X_cleaned,
             model=self.model,
             feature="x1",
             grid_size=5,
@@ -56,7 +67,11 @@ class Test1DContinuous(Test1DFunctions):
 
     def test_bins(self):
         ale_eff = aleplot_1D_continuous(
-            X=self.X, model=self.model, feature="x1", grid_size=5, include_CI=False
+            X=self.X_cleaned,
+            model=self.model,
+            feature="x1",
+            grid_size=5,
+            include_CI=False,
         )
         self.assertCountEqual(
             ale_eff.index,
@@ -72,16 +87,24 @@ class Test1DContinuous(Test1DFunctions):
 
     def test_effvalues(self):
         ale_eff = aleplot_1D_continuous(
-            X=self.X, model=self.model, feature="x1", grid_size=5, include_CI=False
+            X=self.X_cleaned,
+            model=self.model,
+            feature="x1",
+            grid_size=5,
+            include_CI=False,
         )
         self.assertCountEqual(
             np.round(ale_eff.loc[:, "eff"], 8),
-            [-0.35570033, -0.16996644, -0.19291121, 0.10414799, 0.24730329, 0.37855307],
+            [-0.3302859, -0.25946135, -0.03809224, 0.03292833, 0.27153761, 0.3164612],
         )
 
     def test_binsizes(self):
         ale_eff = aleplot_1D_continuous(
-            X=self.X, model=self.model, feature="x1", grid_size=5, include_CI=False
+            X=self.X_cleaned,
+            model=self.model,
+            feature="x1",
+            grid_size=5,
+            include_CI=False,
         )
         self.assertCountEqual(
             ale_eff.loc[:, "size"], [0.0, 40.0, 40.0, 40.0, 40.0, 40.0]
@@ -89,7 +112,7 @@ class Test1DContinuous(Test1DFunctions):
 
     def test_CIvalues(self):
         ale_eff = aleplot_1D_continuous(
-            X=self.X,
+            X=self.X_cleaned,
             model=self.model,
             feature="x1",
             grid_size=5,
@@ -102,31 +125,38 @@ class Test1DContinuous(Test1DFunctions):
         # check the values of the CI
         self.assertCountEqual(
             np.round(ale_eff.loc[ale_eff.index[1] :, "lowerCI_90%"], 8),
-            [-0.21966029, -0.27471201, -0.01534647, 0.20038572, 0.30378132],
+            [-0.37210104, -0.08077478, -0.00175768, 0.20772107, 0.24621853],
         )
         self.assertCountEqual(
             np.round(ale_eff.loc[ale_eff.index[1] :, "upperCI_90%"], 8),
-            [-0.12027259, -0.11111041, 0.22364245, 0.29422086, 0.45332483],
+            [-0.14682166, 0.00459031, 0.06761434, 0.33535415, 0.38670386],
         )
+
+    def test_exceptions(self):
+        # dataset should be compatible with the model
+        with self.assertRaises(Exception) as mod_ex_2:
+            aleplot_1D_continuous(self.X[["x1"]], self.model, "x1")
+        mod_ex_msg = "Please check that your model is fitted, and accepts X as input."
+        self.assertEqual(mod_ex_2.exception.args[0], mod_ex_msg)
 
 
 class Test1Ddiscrete(Test1DFunctions):
     def test_indexname(self):
         ale_eff = aleplot_1D_discrete(
-            X=self.X, model=self.model, feature="x4", include_CI=False
+            X=self.X_cleaned, model=self.model, feature="x4", include_CI=False
         )
         self.assertEqual(ale_eff.index.name, "x4")
 
     def test_outputshape_noCI(self):
         ale_eff = aleplot_1D_discrete(
-            X=self.X, model=self.model, feature="x4", include_CI=False
+            X=self.X_cleaned, model=self.model, feature="x4", include_CI=False
         )
         self.assertEqual(ale_eff.shape, (10, 2))
         self.assertCountEqual(ale_eff.columns, ["eff", "size"])
 
     def test_outputshape_withCI(self):
         ale_eff = aleplot_1D_discrete(
-            X=self.X, model=self.model, feature="x4", include_CI=True, C=0.9
+            X=self.X_cleaned, model=self.model, feature="x4", include_CI=True, C=0.9
         )
         self.assertEqual(ale_eff.shape, (10, 4))
         self.assertCountEqual(
@@ -135,7 +165,7 @@ class Test1Ddiscrete(Test1DFunctions):
 
     def test_bins(self):
         ale_eff = aleplot_1D_discrete(
-            X=self.X, model=self.model, feature="x4", include_CI=False
+            X=self.X_cleaned, model=self.model, feature="x4", include_CI=False
         )
         self.assertCountEqual(
             ale_eff.index, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
@@ -143,27 +173,27 @@ class Test1Ddiscrete(Test1DFunctions):
 
     def test_effvalues(self):
         ale_eff = aleplot_1D_discrete(
-            X=self.X, model=self.model, feature="x4", include_CI=False
+            X=self.X_cleaned, model=self.model, feature="x4", include_CI=False
         )
         self.assertCountEqual(
             np.round(ale_eff.loc[:, "eff"], 8),
             [
-                -1.20935606,
-                -0.82901158,
-                -0.42415507,
-                -0.24192617,
-                0.04098572,
-                0.32370623,
-                0.56468117,
-                0.61378063,
-                0.6786663,
-                0.69330051,
+                -1.15833245,
+                -0.87518863,
+                -0.17627267,
+                -0.03183705,
+                0.21772015,
+                0.3103579,
+                0.37654819,
+                0.38187692,
+                0.54013521,
+                0.59118777,
             ],
         )
 
     def test_binsizes(self):
         ale_eff = aleplot_1D_discrete(
-            X=self.X, model=self.model, feature="x4", include_CI=False
+            X=self.X_cleaned, model=self.model, feature="x4", include_CI=False
         )
         self.assertCountEqual(
             ale_eff.loc[:, "size"], [27, 14, 16, 26, 20, 17, 18, 23, 21, 18]
@@ -171,7 +201,7 @@ class Test1Ddiscrete(Test1DFunctions):
 
     def test_CIvalues(self):
         ale_eff = aleplot_1D_discrete(
-            X=self.X, model=self.model, feature="x4", include_CI=True, C=0.9
+            X=self.X_cleaned, model=self.model, feature="x4", include_CI=True, C=0.9
         )
         # assert that the first bin do not have a CI
         self.assertTrue(np.isnan(ale_eff.loc[ale_eff.index[0], "lowerCI_90%"]))
@@ -180,39 +210,156 @@ class Test1Ddiscrete(Test1DFunctions):
         self.assertCountEqual(
             np.round(ale_eff.loc[ale_eff.index[1] :, "lowerCI_90%"], 8),
             [
-                -0.91916875,
-                -0.54755861,
-                -0.29067159,
-                -0.04528913,
-                0.2512252,
-                0.48115024,
-                0.58654446,
-                0.65270079,
-                0.66807024,
+                -0.92693686,
+                -0.30837293,
+                -0.05872927,
+                0.17298345,
+                0.23835091,
+                0.34097451,
+                0.35996381,
+                0.47381797,
+                0.56927921,
             ],
         )
         self.assertCountEqual(
             np.round(ale_eff.loc[ale_eff.index[1] :, "upperCI_90%"], 8),
             [
-                -0.73885441,
-                -0.30075154,
-                -0.19318075,
-                0.12726056,
-                0.39618726,
-                0.6482121,
-                0.64101679,
-                0.70463181,
-                0.71853079,
+                -0.8234404,
+                -0.0441724,
+                -0.00494484,
+                0.26245684,
+                0.38236488,
+                0.41212186,
+                0.40379003,
+                0.60645245,
+                0.61309633,
             ],
         )
+
+    def test_exceptions(self):
+        mod_not_fit = RandomForestRegressor()
+        # dataset should be compatible with the model
+        with self.assertRaises(Exception) as mod_ex_2:
+            aleplot_1D_discrete(self.X, mod_not_fit, "x4")
+        mod_ex_msg = "Please check that your model is fitted, and accepts X as input."
+        self.assertEqual(mod_ex_2.exception.args[0], mod_ex_msg)
+
+
+class Test1Ddiscrete(Test1DFunctions):
+    assert True
+    # def test_indexname(self):
+    #     ale_eff = aleplot_1D_discrete(
+    #         X=self.X, model=self.model, feature="x4", include_CI=False
+    #     )
+    #     self.assertEqual(ale_eff.index.name, "x4")
+    #
+    # def test_outputshape_noCI(self):
+    #     ale_eff = aleplot_1D_discrete(
+    #         X=self.X, model=self.model, feature="x4", include_CI=False
+    #     )
+    #     self.assertEqual(ale_eff.shape, (10, 2))
+    #     self.assertCountEqual(ale_eff.columns, ["eff", "size"])
+    #
+    # def test_outputshape_withCI(self):
+    #     ale_eff = aleplot_1D_discrete(
+    #         X=self.X, model=self.model, feature="x4", include_CI=True, C=0.9
+    #     )
+    #     self.assertEqual(ale_eff.shape, (10, 4))
+    #     self.assertCountEqual(
+    #         ale_eff.columns, ["eff", "size", "lowerCI_90%", "upperCI_90%"]
+    #     )
+    #
+    # def test_bins(self):
+    #     ale_eff = aleplot_1D_discrete(
+    #         X=self.X, model=self.model, feature="x4", include_CI=False
+    #     )
+    #     self.assertCountEqual(
+    #         ale_eff.index, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    #     )
+    #
+    # def test_effvalues(self):
+    #     ale_eff = aleplot_1D_discrete(
+    #         X=self.X, model=self.model, feature="x4", include_CI=False
+    #     )
+    #     self.assertCountEqual(
+    #         np.round(ale_eff.loc[:, "eff"], 8),
+    #         [
+    #             -1.20935606,
+    #             -0.82901158,
+    #             -0.42415507,
+    #             -0.24192617,
+    #             0.04098572,
+    #             0.32370623,
+    #             0.56468117,
+    #             0.61378063,
+    #             0.6786663,
+    #             0.69330051,
+    #         ],
+    #     )
+    #
+    # def test_binsizes(self):
+    #     ale_eff = aleplot_1D_discrete(
+    #         X=self.X, model=self.model, feature="x4", include_CI=False
+    #     )
+    #     self.assertCountEqual(
+    #         ale_eff.loc[:, "size"], [27, 14, 16, 26, 20, 17, 18, 23, 21, 18]
+    #     )
+    #
+    # def test_CIvalues(self):
+    #     ale_eff = aleplot_1D_discrete(
+    #         X=self.X, model=self.model, feature="x4", include_CI=True, C=0.9
+    #     )
+    #     # assert that the first bin do not have a CI
+    #     self.assertTrue(np.isnan(ale_eff.loc[ale_eff.index[0], "lowerCI_90%"]))
+    #     self.assertTrue(np.isnan(ale_eff.loc[ale_eff.index[0], "upperCI_90%"]))
+    #     # check the values of the CI
+    #     self.assertCountEqual(
+    #         np.round(ale_eff.loc[ale_eff.index[1] :, "lowerCI_90%"], 8),
+    #         [
+    #             -0.91916875,
+    #             -0.54755861,
+    #             -0.29067159,
+    #             -0.04528913,
+    #             0.2512252,
+    #             0.48115024,
+    #             0.58654446,
+    #             0.65270079,
+    #             0.66807024,
+    #         ],
+    #     )
+    #     self.assertCountEqual(
+    #         np.round(ale_eff.loc[ale_eff.index[1] :, "upperCI_90%"], 8),
+    #         [
+    #             -0.73885441,
+    #             -0.30075154,
+    #             -0.19318075,
+    #             0.12726056,
+    #             0.39618726,
+    #             0.6482121,
+    #             0.64101679,
+    #             0.70463181,
+    #             0.71853079,
+    #         ],
+    #     )
+    # def test_exceptions(self):
+    #     mod_not_fit = RandomForestRegressor()
+    #     # dataset should be compatible with the model
+    #     with self.assertRaises(Exception) as mod_ex_2:
+    #         aleplot_1D_discrete(self.X, mod_not_fit, "x4")
+    #     mod_ex_msg = "Please check that your model is fitted, and accepts X as input."
+    #     self.assertEqual(mod_ex_2.exception.args[0], mod_ex_msg)
 
 
 class TestContPlottingFun(Test1DFunctions):
     def test_1D_continuous_line_plot(self):
         ale_eff = aleplot_1D_continuous(
-            X=self.X, model=self.model, feature="x1", grid_size=5, include_CI=True
+            X=self.X_cleaned,
+            model=self.model,
+            feature="x1",
+            grid_size=5,
+            include_CI=True,
         )
-        fig, ax = plot_1D_continuous_eff(ale_eff, self.X)
+        fig, ax = plot_1D_continuous_eff(ale_eff, self.X_cleaned)
         ## effect line
         eff_plt_data = ax.lines[0].get_xydata()
         # the x values should be the bins
@@ -222,64 +369,101 @@ class TestContPlottingFun(Test1DFunctions):
 
     def test_1D_continuous_rug_plot(self):
         ale_eff = aleplot_1D_continuous(
-            X=self.X, model=self.model, feature="x1", grid_size=5, include_CI=True
+            X=self.X_cleaned,
+            model=self.model,
+            feature="x1",
+            grid_size=5,
+            include_CI=True,
         )
-        fig, ax = plot_1D_continuous_eff(ale_eff, self.X)        
+        fig, ax = plot_1D_continuous_eff(ale_eff, self.X_cleaned)
         ## the rug
         rug_plot_data = ax.lines[1].get_xydata()
         # a line for each data point in X
-        self.assertEqual(rug_plot_data.shape[0], self.X.shape[0])
-        # y position is always at the lower eff value
-        self.assertCountEqual(np.unique(rug_plot_data[:, 1]), [ale_eff.eff.min()])
+        self.assertEqual(rug_plot_data.shape[0], self.X_cleaned.shape[0])
+        # y position is always at the lowest eff value (including the values
+        # of the confidence interval)
+        self.assertCountEqual(
+            np.unique(rug_plot_data[:, 1]),
+            [ale_eff.drop("size", axis=1, inplace=False).min().min()],
+        )
         # x position should always be plotted within the bin it belongs to
         # (less than the upper bin limit and more than the lower bin limit)
         self.assertTrue(
             np.all(
                 ale_eff.index[
-                    pd.cut(self.X["x1"], ale_eff.index, include_lowest=True).cat.codes + 1
+                    pd.cut(
+                        self.X_cleaned["x1"], ale_eff.index, include_lowest=True
+                    ).cat.codes
+                    + 1
                 ]
                 > rug_plot_data[:, 0]
             )
             and np.all(
                 ale_eff.index[
-                    pd.cut(self.X["x1"], ale_eff.index, include_lowest=True).cat.codes
+                    pd.cut(
+                        self.X_cleaned["x1"], ale_eff.index, include_lowest=True
+                    ).cat.codes
                 ]
                 < rug_plot_data[:, 0]
             )
         )
+
     def test_1D_continuous_ci_plot(self):
         ale_eff = aleplot_1D_continuous(
-            X=self.X, model=self.model, feature="x1", grid_size=5, include_CI=True
+            X=self.X_cleaned,
+            model=self.model,
+            feature="x1",
+            grid_size=5,
+            include_CI=True,
         )
-        fig, ax = plot_1D_continuous_eff(ale_eff, self.X)
-        ci_plot_data = pd.DataFrame(ax.collections[0].get_paths()[0].vertices).drop_duplicates().groupby(0).agg(['min', 'max'])
-        ci_plot_data.index.name = 'x1'
-        ci_plot_data.columns = ['lowerCI_95%', 'upperCI_95%']
-        self.assertTrue(np.all(ale_eff.loc[ale_eff.index[1]:, ['lowerCI_95%', 'upperCI_95%']] == ci_plot_data))
+        fig, ax = plot_1D_continuous_eff(ale_eff, self.X_cleaned)
+        ci_plot_data = (
+            pd.DataFrame(ax.collections[0].get_paths()[0].vertices)
+            .drop_duplicates()
+            .groupby(0)
+            .agg(["min", "max"])
+        )
+        ci_plot_data.index.name = "x1"
+        ci_plot_data.columns = ["lowerCI_95%", "upperCI_95%"]
+        self.assertTrue(
+            np.all(
+                ale_eff.loc[ale_eff.index[1] :, ["lowerCI_95%", "upperCI_95%"]]
+                == ci_plot_data
+            )
+        )
+
 
 class TestDiscPlottingFun(Test1DFunctions):
     def test_1D_continuous_line_plot(self):
         ale_eff = aleplot_1D_discrete(
-            X=self.X, model=self.model, feature="x4", include_CI=True
+            X=self.X_cleaned, model=self.model, feature="x4", include_CI=True
         )
-        fig, ax, ax2 = plot_1D_discrete_eff(ale_eff, self.X)
+        fig, ax, ax2 = plot_1D_discrete_eff(ale_eff, self.X_cleaned)
         self.assertCountEqual(ax.lines[0].get_xydata()[:, 0], ale_eff.index)
         self.assertCountEqual(ax.lines[0].get_xydata()[:, 1], ale_eff.eff)
 
     def test_1D_continuous_ci_plot(self):
         ale_eff = aleplot_1D_discrete(
-            X=self.X, model=self.model, feature="x4", include_CI=True
+            X=self.X_cleaned, model=self.model, feature="x4", include_CI=True
         )
-        fig, ax, ax2 = plot_1D_discrete_eff(ale_eff, self.X)
-        self.assertCountEqual(np.round(ax.lines[1].get_xydata()[1:, 1], 8) , np.round(ale_eff['lowerCI_95%'][1:], 8))
-        self.assertCountEqual(np.round(ax.lines[2].get_xydata()[1:, 1], 8) , np.round(ale_eff['upperCI_95%'][1:], 8))
+        fig, ax, ax2 = plot_1D_discrete_eff(ale_eff, self.X_cleaned)
+        self.assertCountEqual(
+            np.round(ax.lines[1].get_xydata()[1:, 1], 8),
+            np.round(ale_eff["lowerCI_95%"][1:], 8),
+        )
+        self.assertCountEqual(
+            np.round(ax.lines[2].get_xydata()[1:, 1], 8),
+            np.round(ale_eff["upperCI_95%"][1:], 8),
+        )
 
     def test_1D_continuous_bar_plot(self):
         ale_eff = aleplot_1D_discrete(
-            X=self.X, model=self.model, feature="x4", include_CI=True
+            X=self.X_cleaned, model=self.model, feature="x4", include_CI=True
         )
-        fig, ax, ax2 = plot_1D_discrete_eff(ale_eff, self.X)
-        self.assertCountEqual(ale_eff['size'], [bar.get_height() for bar in ax2.patches])
+        fig, ax, ax2 = plot_1D_discrete_eff(ale_eff, self.X_cleaned)
+        self.assertCountEqual(
+            ale_eff["size"], [bar.get_height() for bar in ax2.patches]
+        )
 
 
 if __name__ == "__main__":

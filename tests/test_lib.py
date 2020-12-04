@@ -35,8 +35,7 @@ class TestlibFunctions(unittest.TestCase):
         self.assertEqual(cmds_res.shape, (10, 2))
         self.assertCountEqual(np.round(cmds_res[0], 8), [-0.27720001, 0.30273103])
         self.assertCountEqual(
-            np.round(cmds_res[:3, 0], 8),
-            [-0.27720001, -0.12125997,  0.23333853],
+            np.round(cmds_res[:3, 0], 8), [-0.27720001, -0.12125997, 0.23333853],
         )
 
     def test_quantile_ied(self):
