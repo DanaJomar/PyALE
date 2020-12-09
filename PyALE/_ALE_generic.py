@@ -11,6 +11,9 @@ from ._src.ALE_1D import (
 )
 from ._src.ALE_2D import aleplot_2D_continuous, plot_2D_continuous_eff
 
+logger = logging.getLogger(__name__)
+logger.setLevel(level=logging.INFO)
+logging.basicConfig(format='%(name)s:%(levelname)s: %(message)s')
 
 def ale(
     X,
@@ -156,20 +159,20 @@ def ale(
         # check feature type
         # assign feature type if not given
         if feature_type == "auto":
-            logging.info("Detecteing feature type ....")
+            logger.info("Detecteing feature type ....")
             if X.loc[:, feature].dtype.kind in "iuf":
                 # https://numpy.org/doc/stable/reference/generated/numpy.dtype.kind.html
                 if (feat_values_unique <= 10) | (
                     feat_values_unique / X.shape[0] <= 0.002
                 ):
                     feature_type = "discrete"
-                    logging.info("Discrete feature detected.")
+                    logger.info("Discrete feature detected.")
                 else:
                     feature_type = "continuous"
-                    logging.info("Continuous feature detected.")
+                    logger.info("Continuous feature detected.")
             else:
                 feature_type = "categorical"
-                logging.info("categorical feature detected.")
+                logger.info("categorical feature detected.")
         # if the feature is continuous
         if feature_type == "continuous":
             arg_eff = {
