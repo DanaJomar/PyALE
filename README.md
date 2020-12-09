@@ -198,8 +198,11 @@ ale_discr
     `coverage run -m --source=PyALE unittest discover -v` then 
     * for a fast report in the shell : `coverage report`
     * for a detailed html report: `coverage html`
-
 * The versions of the packages used during the development process are freezed in requirements.txt
+
+### Possible Future Improvements
+
+* Support for classification models (at the moment this is only possible with a workaround. See [ALE plots for classification models](https://htmlpreview.github.io/?https://github.com/DanaJomar/PyALE/blob/master/examples/ALE%20plots%20for%20classification%20models.html))
 
 ### Ref.
 * https://cran.r-project.org/web/packages/ALEPlot/vignettes/AccumulatedLocalEffectPlot.pdf
