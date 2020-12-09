@@ -159,7 +159,7 @@ def ale(
         # check feature type
         # assign feature type if not given
         if feature_type == "auto":
-            logger.info("Detecteing feature type ....")
+            logger.debug("Detecteing feature type ....")
             if X.loc[:, feature].dtype.kind in "iuf":
                 # https://numpy.org/doc/stable/reference/generated/numpy.dtype.kind.html
                 if (feat_values_unique <= 10) | (
