@@ -24,135 +24,118 @@ Since python models work with numeric features only, categorical variables are o
 
 * For integer encoding: the package offers the option to compute and plot the effect of a discrete feature 
     * including the option to compute a confidence interval of the effect.
-* For one-hot-encoding: this part is still [[**under development**]].
+* For one-hot-encoding: or any other custom encoding, the package starting from version 1.1 offers the possibility to pass a custom encoding function to categorical (or string) features. 
+
+The package by default uses the ordering assigned to the given categorical feature, however, if the feature does not have an assigned ordering, then the categories of the feature will be ordered by their similarities based on the distribution of the other features in each category.
 
 ## Usage with examples:
-* First prepare data and train a model
+* First prepare the data and train a model.
+  
+  * To explore the different features in this package, we choose one categorical feature to one-hot-encode, and we'll use integer encoding for the rest.
+  * Full code and other examples can be found in [Examples](https://raw.githubusercontent.com/DanaJomar/PyALE/master/examples/Examples.html) 
+  
+* For the following examples we train a random forest to predict the price of diamonds with the following data
 
-```python
-import pandas as pd
-from sklearn.ensemble import RandomForestRegressor
+  ```
+  X[features]
+  ```
 
-# get the raw diamond data (from R's ggplot2) 
-dat_diamonds = pd.read_csv('https://raw.githubusercontent.com/tidyverse/ggplot2/master/data-raw/diamonds.csv')
-X = dat_diamonds.loc[:, ~dat_diamonds.columns.str.contains('price')].copy()
-y = dat_diamonds.loc[:, 'price'].copy()
-
-# convert the three text columns to ordered categoricals
-X.loc[:,'cut'] = X.loc[:,'cut'].astype(pd.api.types.CategoricalDtype(
-  categories = ['Fair', 'Good', 'Very Good', 'Premium', 'Ideal'],
-  ordered=True))
-X.loc[:, 'color'] = X.loc[:,'color'].astype(pd.api.types.CategoricalDtype(
-  categories = ['D', 'E', 'F', 'G', 'H', 'I', 'J'],
-  ordered=True))
-X.loc[:, 'clarity'] = X.loc[:, 'clarity'].astype(pd.api.types.CategoricalDtype(
-  categories = ['I1', 'SI2', 'SI1', 'VS2', 'VS1', 'VVS2', 'VVS1', 'IF'  ],
-  ordered=True))
-
-# use the codes of each categorical as a numeric encoding for the feature
-X.loc[:,'cut'] = X.loc[:,'cut'].cat.codes
-X.loc[:, 'color'] = X.loc[:, 'color'].cat.codes
-X.loc[:, 'clarity'] = X.loc[:, 'clarity'].cat.codes
-
-model = RandomForestRegressor(random_state = 1345)
-model.fit(X, y)
-```
+  | carat | cut_code | clarity_code | depth | table | x    | y    | z    | D    | E    | F    | G    | H    | I    | J    |
+  | ----- | -------- | ------------ | ----- | ----- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+  | 0.23  | 4        | 1            | 61.5  | 55.0  | 3.95 | 3.98 | 2.43 | 0.0  | 1.0  | 0.0  | 0.0  | 0.0  | 0.0  | 0.0  |
+  | 0.21  | 3        | 2            | 59.8  | 61.0  | 3.89 | 3.84 | 2.31 | 0.0  | 1.0  | 0.0  | 0.0  | 0.0  | 0.0  | 0.0  |
+  | 0.23  | 1        | 4            | 56.9  | 65.0  | 4.05 | 4.07 | 2.31 | 0.0  | 1.0  | 0.0  | 0.0  | 0.0  | 0.0  | 0.0  |
+  | 0.29  | 3        | 3            | 62.4  | 58.0  | 4.20 | 4.23 | 2.63 | 0.0  | 0.0  | 0.0  | 0.0  | 0.0  | 1.0  | 0.0  |
+  | 0.31  | 1        | 1            | 63.3  | 58.0  | 4.34 | 4.35 | 2.75 | 0.0  | 0.0  | 0.0  | 0.0  | 0.0  | 0.0  | 1.0  |
 
 * import the generic function `ale` from the package
 
 ```python
 from PyALE import ale
 ```
-* **1D ALE plot for numeric continuous features** 
+* start analysing the effects of your features
 
-```python
-## 1D - continuous - no CI
-ale_eff = ale(
-    X=X, 
-    model=model,
-    feature=['carat'], 
-    feature_type='continuous',
-    grid_size=50, 
-    include_CI=False)
-```
-![1D ALE Plot](https://raw.githubusercontent.com/DanaJomar/PyALE/master/examples/plots/1D_ALE_Plot_Ex_noCI.jpeg)
+  * **1D ALE plot for numeric continuous feature** 
 
-The confidence intervals around the estimated effects are specially important when the sample data is small, which is why as an example plot for the confidence intervals we'll take a random sample of the dataset
+    ```
+    ## 1D - continuous - no CI
+    ale_eff = ale(
+        X=X[features], model=model, feature=["carat"], grid_size=50, include_CI=False
+    )
+    ```
 
-```python
-## 1D - continuous - with 95% CI
-random.seed(123)
-X_sample = X.loc[random.sample(X.index.to_list(), 1000), :]
-ale_eff = ale(
-    X=X_sample, 
-    model=model,
-    feature=['carat'], 
-    feature_type='continuous',
-    grid_size=50, 
-    include_CI=True,
-    C=0.95)
-```
-![1D ALE Plot with CI](https://raw.githubusercontent.com/DanaJomar/PyALE/master/examples/plots/1D_ALE_Plot_Ex_withCI.jpeg)
+    ![1D ALE Plot](https://raw.githubusercontent.com/DanaJomar/PyALE/master/examples/plots/1D_ALE_Plot_Ex_noCI.jpeg)
 
-* **1D ALE plot for numeric discrete features**
+    The confidence intervals around the estimated effects are specially important when the sample data is small, which is why as an example plot for the confidence intervals we'll take a random sample of the dataset
 
-```python
-## 1D - discrete
-ale_eff = ale(
-    X=X,
-    model=model, 
-    feature=['cut'],
-    feature_type='discrete')
-```
-![1D ALE Plot Disc](https://raw.githubusercontent.com/DanaJomar/PyALE/master/examples/plots/1D_ALE_Plot_Discrete_Ex.jpeg)
+    ```python
+    ## 1D - continuous - with 95% CI
+    random.seed(123)
+    X_sample = X[features].loc[random.sample(X.index.to_list(), 1000), :]
+    ale_eff = ale(
+        X=X_sample, model=model, feature=["carat"], grid_size=50, include_CI=True, C=0.95
+    )
+    ```
+
+    ![1D ALE Plot with CI](https://raw.githubusercontent.com/DanaJomar/PyALE/master/examples/plots/1D_ALE_Plot_Ex_withCI.jpeg)
+
+  * **1D ALE plot for numeric discrete feature**
+
+    ```python
+    ## 1D - discrete
+    ale_eff = ale(X=X[features], model=model, feature=["cut_code"])
+    ```
+
+  ​	![1D ALE Plot Disc](https://raw.githubusercontent.com/DanaJomar/PyALE/master/examples/plots/1D_ALE_Plot_Discrete_Ex.jpeg)
+
+  * **1D ALE plot for [one-hot-encoded] categorical feature**
+
+    In this case, it is not enough to use `X` (that was used for training), because it does not contain the original feature, we have to replace the encoding with the raw feature, and then  we need to  pass a custom encoding function (in our example `onehot_encode`) and a list or array of all used predictors (in our example the list `features`)
+
+    ```python
+    ## remove the one-hot-encoding columns and add the original -raw- feature
+    ## since X already has the raw feature it is enough to drop its encoding columns 
+    X_feat_raw = X.drop(coded_feature.columns.to_list(), axis=1, inplace=False).copy()
+    
+    ## 1D - categorical
+    ale_eff = ale(
+        X=X_feat_raw,
+        model=model,
+        feature=["color"],
+        encode_fun=onehot_encode,
+        predictors=features,
+    )
+    ```
+
+    
+
+![1D ALE Plot Cat](https://raw.githubusercontent.com/DanaJomar/PyALE/master/examples/plots/1D_ALE_Plot_Categorical_Ex.jpeg)
+
+Note that the function `ale` has detected the right feature type in all three cases, however, the user can always specify the feature type if she/he thinks that the function did not detect the expected type.
 
 
 * **2D ALE plot for numeric features**
 
 ```python
 ## 2D - continuous
-ale_eff = ale(
-    X=X,
-    model=model, 
-    feature=['z', 'table'],
-    grid_size=100)
+ale_eff = ale(X=X[features], model=model, feature=["z", "table"], grid_size=100)
 ```
 ![2D ALE Plot](https://raw.githubusercontent.com/DanaJomar/PyALE/master/examples/plots/2D_ALE_Plot_Ex.jpeg)
-
-Or sometimes it is better to take a look at the effect of each feature on its own but side by side
-For additional plot customization one can pass a figure and axis to the function
-
-```python
-## two 1D plots side by side
-import matplotlib.pyplot as plt
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 7))
-ale_res_1 = ale(
-    X=X,  model=model, feature=['z'], feature_type='continuous', grid_size=20, 
-    include_CI=True, C=0.95, 
-    plot=True, fig=fig, ax=ax1)
-ale_res_2 = ale(
-    X=X, model=model, feature=['table'], feature_type='continuous', grid_size=20, 
-    include_CI=True, C=0.95, 
-    plot=True, fig=fig, ax=ax2)
-# change x labels
-ax1.set_xlabel("depth in mm (0–31.8)")
-ax2.set_xlabel("width of top of diamond relative to widest point (43–95)")
-```
-![1D 2 ALE Plot](https://raw.githubusercontent.com/DanaJomar/PyALE/master/examples/plots/1D_ALE_Plot_2feat_Ex.jpeg)
 
 ## Interpretation:
 
 ```python
 random.seed(123)
-X_sample = X.loc[random.sample(X.index.to_list(), 1000), :]
+X_sample = X[features].loc[random.sample(X.index.to_list(), 1000), :]
 ale_contin = ale(
-    X=X_sample, 
+    X=X_sample,
     model=model,
-    feature=['carat'], 
-    feature_type='continuous',
-    grid_size=5, 
+    feature=["carat"],
+    feature_type="continuous",
+    grid_size=5,
     include_CI=True,
-    C=0.95)
+    C=0.95,
+)
 ```
 
 ![1D ALE Plot](https://raw.githubusercontent.com/DanaJomar/PyALE/master/examples/plots/interpretation_Ex.jpeg)
@@ -162,29 +145,30 @@ For continuous variables the algorithm cuts the feature to bins starting from th
 ```python
 ale_contin
 ```
-|  carat  |    eff      | size   | lowerCI_95%   | upperCI_95%    |
-| ------  | ----------- | ------ | -----------   | -----------    |
-| 0.23    |-1837.001629 |   0.0  |          NaN  |        NaN     |
-| 0.38    |-1744.987885 | 215.0  | -1760.904293  |  -1729.071477  |
-| 0.56    |-1434.286959 | 189.0  | -1469.568429  |  -1399.005489  |
-| 0.90    |  205.224732 | 201.0  |   154.492631  |    255.956834  |
-| 1.18    | 1647.159091 | 195.0  |  1491.228257  |   1803.089926  |
-| 3.00    | 4637.027675 | 200.0  |  4307.809865  |   4966.245485  |
+|  carat  |    eff      | size   | lowerCI_95%   | upperCI_95%   |
+| ------  | ----------- | ------ | -----------   | -----------   |
+| 0.23    |-1721.408141 |   0.0  |          NaN  |          NaN  |
+| 0.35    |-1633.405685 | 203.0  | -1650.042600  | -1616.768770  |
+| 0.55    |-1242.989786 | 204.0  | -1275.489577  | -1210.489995  |
+| 0.90    |  176.838662 | 213.0  |   125.162929  |   228.514394  |
+| 1.14    | 1521.617690 | 182.0  |  1351.287932  |  1691.947448  |
+| 3.00    | 4467.185422 | 198.0  |  4115.599415  |  4818.771429  |
 
-What interests us when interpreting the results is the difference in the effect between the edges of the bins, in this example one can say that the value of the prediction increases by approximately 2990 (`4637 - 1647`) when the carat increases from 1.18 to 3.00, as can be seen in the last two lines. With this in mind we can see that the values of the confidence interval only makes sense starting from the second value (the upper edge of the first bin) and could also be compared with the eff value of the previous row as to give an idea of how much this difference can fluctuate (e.g., for the bin `(1.18, 3.00]` between 2660 and 3319 with 95% certainty).
+What interests us when interpreting the results is the difference in the effect between the edges of the bins, in this example one can say that the value of the prediction increases by approximately 2946 (`4467 - 1521`) when the carat increases from 1.14 to 3.00, as can be seen in the last two lines. With this in mind we can see that the values of the confidence interval only makes sense starting from the second value (the upper edge of the first bin) and could also be compared with the eff value of the previous row as to give an idea of how much this difference can fluctuate (e.g., for the bin `(1.14, 3.00]` between 2764 and 3127 with 95% certainty).
 
-The lower edge of the first bin is in fact the minimum value of the feature in the given data, and it belongs to the first bin (unlike the following bins which contain the upper edge but not the lower). The size column contains the number of data points in the bin ending with the feature value in the corresponding row and starting with value before it (e.g., the bin `(1.18, 3.00]` has `200` data points). The rug at the bottom of the generated plot shows the distribution of the data points.
+The lower edge of the first bin is in fact the minimum value of the feature in the given data, and it belongs to the first bin (unlike the following bins which contain the upper edge but not the lower). The size column contains the number of data points in the bin ending with the feature value in the corresponding row and starting with value before it (e.g., the bin `(1.14, 3.00]` has `198` data points). The rug at the bottom of the generated plot shows the distribution of the data points.
 
 For categoricals or variables with discrete values the interpretation is similar and we also get the average difference in prediction, but instead of bins each value will be replaced once with the value before it and once with the value after it.
 
 ```python
 ale_discr = ale(
-    X=X_sample, 
+    X=X_sample,
     model=model,
-    feature=['cut'], 
-    feature_type='discrete',
+    feature=["cut_code"],
+    feature_type="discrete",
     include_CI=True,
-    C=0.95)
+    C=0.95,
+)
 ```
 
 ![1D ALE Plot](https://raw.githubusercontent.com/DanaJomar/PyALE/master/examples/plots/interpretation_discr_Ex.jpeg)
@@ -197,11 +181,11 @@ ale_discr
 
 | cut |        eff  | size  | lowerCI_95%  | upperCI_95% |
 | --- | ----------- | ----- | -----------  | ----------- |
-| 0   | -97.899068  |   38  |         NaN  |         NaN |
-| 1   | -78.637401  |   82  |  -92.021015  |  -65.253787 |
-| 2   | -45.933788  |  204  |  -59.335160  |  -32.532416 |
-| 3   | -29.779222  |  276  |  -39.234601  |  -20.323843 |
-| 4   |  69.394974  |  400  |   51.432901  |   87.357046 |
+|0    | -90.799533  |   38  |         NaN  |         NaN |
+|1    | -70.106933  |   82  |  -81.689547  |  -58.524319 |
+|2    | -41.629904  |  204  |  -51.675662  |  -31.584146 |
+|3    | -33.406766  |  276  |  -41.209584  |  -25.603949 |
+|4    |  67.279797  |  400  |   52.097705  |   82.461888 |
 
 ## Development
 * Installing the package in edit mode could be done with `pip install -e`
