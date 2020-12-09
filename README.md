@@ -24,7 +24,7 @@ Since python models work with numeric features only, categorical variables are o
 
 * For integer encoding: the user can plot the effect of the feature as a discrete feature 
     * does not need additional preparation steps
-* For one-hot-encoding: or any other custom encoding, the package starting from version 1.1 offers the possibility to pass a custom encoding function to categorical (or string) features. 
+* For one-hot-encoding: or any other custom encoding, the package, starting from version 1.1, offers the possibility to pass a custom encoding function to categorical (or string) features. 
     * in this case the user must provide 
         * a function that encodes the raw feature
         * a data set that includes the raw feature instead of the encoded one (including all other features used for training)
@@ -40,7 +40,7 @@ The package by default uses the ordering assigned to the given categorical featu
   
 * For the following examples we train a random forest to predict the price of diamonds with the following data
 
-  ```
+  ```python
   X[features]
   ```
 
