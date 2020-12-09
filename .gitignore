@@ -4,6 +4,9 @@
 # python
 __pycache__/
 
+# jupyter
+.ipynb_checkpoints
+
 # coverage
 .coverage
 htmlcov/
