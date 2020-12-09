@@ -20,11 +20,15 @@ The package offers the possibility to
 * Compute and plot the effect of two numeric features (2D ALE)
 
 ### For categorical features:
-Since python models work with numeric features only, categorical variables are often encoded by one of two methods, either with integer encoding (when the categories have a natural ordering of some sort e.g., days of the week) or with one-hot-encoding (when the categories do not have ordering e.g., colors)
+Since python models work with numeric features only, categorical variables are often encoded by one of two methods, either with integer encoding (when the categories have a natural ordering of some sort e.g., days of the week) or with one-hot-encoding (when the categories do not have ordering e.g., colors). The package offers the option to compute and plot the effect of such features, including the option to compute a confidence interval of the effect. In this case the use has two options:
 
-* For integer encoding: the package offers the option to compute and plot the effect of a discrete feature 
-    * including the option to compute a confidence interval of the effect.
+* For integer encoding: the user can plot the effect of the feature as a discrete feature 
+    * does not need additional preparation steps
 * For one-hot-encoding: or any other custom encoding, the package starting from version 1.1 offers the possibility to pass a custom encoding function to categorical (or string) features. 
+    * in this case the user must provide 
+        * a function that encodes the raw feature
+        * a data set that includes the raw feature instead of the encoded one (including all other features used for training)
+        * a list of all predictors used for training the model
 
 The package by default uses the ordering assigned to the given categorical feature, however, if the feature does not have an assigned ordering, then the categories of the feature will be ordered by their similarities based on the distribution of the other features in each category.
 
@@ -32,7 +36,7 @@ The package by default uses the ordering assigned to the given categorical featu
 * First prepare the data and train a model.
   
   * To explore the different features in this package, we choose one categorical feature to one-hot-encode, and we'll use integer encoding for the rest.
-  * Full code and other examples can be found in [Examples](https://raw.githubusercontent.com/DanaJomar/PyALE/master/examples/Examples.html) 
+  * Full code and other examples can be found in [Examples](https://htmlpreview.github.io/?https://github.com/DanaJomar/PyALE/blob/master/examples/Examples.html) 
   
 * For the following examples we train a random forest to predict the price of diamonds with the following data
 
@@ -50,14 +54,15 @@ The package by default uses the ordering assigned to the given categorical featu
 
 * import the generic function `ale` from the package
 
-```python
-from PyALE import ale
-```
+  ```python
+  from PyALE import ale
+  ```
+
 * start analysing the effects of your features
 
   * **1D ALE plot for numeric continuous feature** 
 
-    ```
+    ```python
     ## 1D - continuous - no CI
     ale_eff = ale(
         X=X[features], model=model, feature=["carat"], grid_size=50, include_CI=False
@@ -86,11 +91,11 @@ from PyALE import ale
     ale_eff = ale(X=X[features], model=model, feature=["cut_code"])
     ```
 
-  ​	![1D ALE Plot Disc](https://raw.githubusercontent.com/DanaJomar/PyALE/master/examples/plots/1D_ALE_Plot_Discrete_Ex.jpeg)
+    ![1D ALE Plot Disc](https://raw.githubusercontent.com/DanaJomar/PyALE/master/examples/plots/1D_ALE_Plot_Discrete_Ex.jpeg)
 
   * **1D ALE plot for [one-hot-encoded] categorical feature**
 
-    In this case, it is not enough to use `X` (that was used for training), because it does not contain the original feature, we have to replace the encoding with the raw feature, and then  we need to  pass a custom encoding function (in our example `onehot_encode`) and a list or array of all used predictors (in our example the list `features`)
+    In this case, it is not enough to use `X[features]` (that was used for training), because it does not contain the original feature, we have to replace the encoding with the raw feature, and then  we need to  pass a custom encoding function (in our example the function`onehot_encode`) and a list or array of all used predictors (in our example the list `features`)
 
     ```python
     ## remove the one-hot-encoding columns and add the original -raw- feature
@@ -107,20 +112,18 @@ from PyALE import ale
     )
     ```
 
-    
+    ![1D ALE Plot Cat](https://raw.githubusercontent.com/DanaJomar/PyALE/master/examples/plots/1D_ALE_Plot_Categorical_Ex.jpeg)
 
-![1D ALE Plot Cat](https://raw.githubusercontent.com/DanaJomar/PyALE/master/examples/plots/1D_ALE_Plot_Categorical_Ex.jpeg)
-
-Note that the function `ale` has detected the right feature type in all three cases, however, the user can always specify the feature type if she/he thinks that the function did not detect the expected type.
-
+  Note that the function `ale` has detected the right feature type in all three cases, however, the user can always specify the feature type if she/he thinks that the function did not detect the expected type.
 
 * **2D ALE plot for numeric features**
 
-```python
-## 2D - continuous
-ale_eff = ale(X=X[features], model=model, feature=["z", "table"], grid_size=100)
-```
-![2D ALE Plot](https://raw.githubusercontent.com/DanaJomar/PyALE/master/examples/plots/2D_ALE_Plot_Ex.jpeg)
+  ```python
+  ## 2D - continuous
+  ale_eff = ale(X=X[features], model=model, feature=["z", "table"], grid_size=100)
+  ```
+
+  ![2D ALE Plot](https://raw.githubusercontent.com/DanaJomar/PyALE/master/examples/plots/2D_ALE_Plot_Ex.jpeg)
 
 ## Interpretation:
 
