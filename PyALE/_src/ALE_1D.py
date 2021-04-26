@@ -94,24 +94,28 @@ def aleplot_1D_discrete(X, model, feature, include_CI=True, C=0.95):
 
     groups = X[feature].unique()
     groups.sort()
-    groups_codes = [x for x in range(len(groups))]
-
+    
+    groups_codes = {groups[x]:x for x in range(len(groups))}
+    feature_codes = X[feature].replace(groups_codes)
+    
     groups_counts = X.groupby(feature).size()
     groups_props = groups_counts / sum(groups_counts)
-
+    
     K = len(groups)
-
+    
     # create copies of the dataframe
     X_plus = X.copy()
     X_neg = X.copy()
     # all groups except last one
-    ind_plus = X[feature] < groups[K - 1]
+    last_group = groups[K - 1]
+    ind_plus = X[feature] != last_group
     # all groups except first one
-    ind_neg = X[feature] > groups[0]
+    first_group = groups[0]
+    ind_neg = X[feature] != first_group
     # replace once with one level up
-    X_plus.loc[ind_plus, feature] = groups[X.loc[ind_plus, feature] + 1]
+    X_plus.loc[ind_plus, feature] = groups[feature_codes[ind_plus] + 1]
     # replace once with one level down
-    X_neg.loc[ind_neg, feature] = groups[X.loc[ind_neg, feature] - 1]
+    X_neg.loc[ind_neg, feature] = groups[feature_codes[ind_neg] - 1]
     try:
         # predict with original and with the replaced values
         y_hat = model.predict(X)
@@ -121,21 +125,21 @@ def aleplot_1D_discrete(X, model, feature, include_CI=True, C=0.95):
         raise Exception(
             "Please check that your model is fitted, and accepts X as input."
         )
-
+    
     # compute prediction difference
     Delta_plus = y_hat_plus - y_hat[ind_plus]
     Delta_neg = y_hat[ind_neg] - y_hat_neg
-
+    
     # compute the mean of the difference per group
     delta_df = pd.concat(
         [
-            pd.DataFrame({"eff": Delta_plus, feature: X.loc[ind_plus, feature] + 1}),
-            pd.DataFrame({"eff": Delta_neg, feature: X.loc[ind_neg, feature]}),
+            pd.DataFrame({"eff": Delta_plus, feature: groups[feature_codes[ind_plus] + 1]}),
+            pd.DataFrame({"eff": Delta_neg, feature: groups[feature_codes[ind_neg]]}),
         ]
     )
     res_df = delta_df.groupby([feature]).mean()
     res_df["eff"] = res_df["eff"].cumsum()
-    res_df.loc[0] = 0
+    res_df.loc[groups[0]] = 0
     res_df = res_df.sort_index()
     res_df["eff"] = res_df["eff"] - sum(res_df["eff"] * groups_props)
     res_df["size"] = groups_counts
