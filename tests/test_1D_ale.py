@@ -40,8 +40,6 @@ class Test1DFunctions(unittest.TestCase):
             self.y = np.load(y_npy)
         with open(os.path.join(path_to_fixtures, "model.pickle"), "rb") as model_pickle:
             self.model = pickle.load(model_pickle)
-        with open(os.path.join(path_to_fixtures, "model.pickle"), "rb") as model_pickle:
-            self.model = pickle.load(model_pickle)
 
 
 class Test1DContinuous(Test1DFunctions):
@@ -150,7 +148,7 @@ class Test1DContinuous(Test1DFunctions):
     def test_exceptions(self):
         # dataset should be compatible with the model
         with self.assertRaises(Exception) as mod_ex_2:
-            aleplot_1D_continuous(self.X[["x1"]], self.model, "x1")
+            aleplot_1D_continuous(self.X, self.model, "x1")
         mod_ex_msg = "Please check that your model is fitted, and accepts X as input."
         self.assertEqual(mod_ex_2.exception.args[0], mod_ex_msg)
 
