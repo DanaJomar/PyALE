@@ -96,7 +96,7 @@ def aleplot_1D_discrete(X, model, feature, include_CI=True, C=0.95):
     groups.sort()
     
     groups_codes = {groups[x]:x for x in range(len(groups))}
-    feature_codes = X[feature].replace(groups_codes)
+    feature_codes = X[feature].replace(groups_codes).astype(int)
     
     groups_counts = X.groupby(feature).size()
     groups_props = groups_counts / sum(groups_counts)
@@ -118,9 +118,9 @@ def aleplot_1D_discrete(X, model, feature, include_CI=True, C=0.95):
     X_neg.loc[ind_neg, feature] = groups[feature_codes[ind_neg] - 1]
     try:
         # predict with original and with the replaced values
-        y_hat = model.predict(X)
-        y_hat_plus = model.predict(X_plus[ind_plus])
-        y_hat_neg = model.predict(X_neg[ind_neg])
+        y_hat = model.predict(X).ravel()
+        y_hat_plus = model.predict(X_plus[ind_plus]).ravel()
+        y_hat_neg = model.predict(X_neg[ind_neg]).ravel()
     except Exception as ex:
         raise Exception(
             "Please check that your model is fitted, and accepts X as input."
@@ -233,21 +233,21 @@ def aleplot_1D_categorical(
         # encode the categorical feature
         X_coded = pd.concat([X.drop(feature, axis=1), encode_fun(X[[feature]])], axis=1)
         # predict
-        y_hat = model.predict(X_coded[predictors])
+        y_hat = model.predict(X_coded[predictors]).ravel()
 
         # encode the categorical feature
         X_plus_coded = pd.concat(
             [X_plus.drop(feature, axis=1), encode_fun(X_plus[[feature]])], axis=1
         )
         # predict
-        y_hat_plus = model.predict(X_plus_coded[ind_plus][predictors])
+        y_hat_plus = model.predict(X_plus_coded[ind_plus][predictors]).ravel()
 
         # encode the categorical feature
         X_neg_coded = pd.concat(
             [X_neg.drop(feature, axis=1), encode_fun(X_neg[[feature]])], axis=1
         )
         # predict
-        y_hat_neg = model.predict(X_neg_coded[ind_neg][predictors])
+        y_hat_neg = model.predict(X_neg_coded[ind_neg][predictors]).ravel()
     except Exception as ex:
         raise Exception(
             """There seems to be a problem when predicting with the model.
