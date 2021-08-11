@@ -72,10 +72,10 @@ def aleplot_2D_continuous(X, model, features, grid_size=40):
         }
     )
 
-    y_11 = model.predict(X11)
-    y_12 = model.predict(X12)
-    y_21 = model.predict(X21)
-    y_22 = model.predict(X22)
+    y_11 = model.predict(X11).ravel()
+    y_12 = model.predict(X12).ravel()
+    y_21 = model.predict(X21).ravel()
+    y_22 = model.predict(X22).ravel()
 
     delta_df = pd.DataFrame(
         {
