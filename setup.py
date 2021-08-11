@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="PyALE",
-    version="1.1.1",
+    version="1.1.2",
     author="Dana Jomar",
     author_email="dana.jomar@outlook.com",
     description="ALE plots with python",
