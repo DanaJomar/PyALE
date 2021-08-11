@@ -211,8 +211,8 @@ def aleplot_2D_continuous(X, model, features, grid_size=40):
 
     # renaming and preparing final output
     eff_df = eff_df.reset_index(name="eff")
-    eff_df[features[0]] = bins_0[eff_df[features[0]]]
-    eff_df[features[1]] = bins_1[eff_df[features[1]]]
+    eff_df[features[0]] = bins_0[eff_df[features[0]].values]
+    eff_df[features[1]] = bins_1[eff_df[features[1]].values]
     eff_grid = eff_df.pivot_table(columns=features[1], values="eff", index=features[0])
 
     return eff_grid
