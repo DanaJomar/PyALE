@@ -26,6 +26,9 @@ def aleplot_2D_continuous(X, model, features, grid_size=40):
     the accumulated centered effect of this bin.
     """
 
+    # reset index to avoid index missmatches when replacing the values with the codes (lines 50 - 73)
+    X = X.reset_index(drop=True)
+
     quantiles = np.append(0, np.arange(1 / grid_size, 1 + 1 / grid_size, 1 / grid_size))
     bins_0 = [X[features[0]].min()] + quantile_ied(X[features[0]], quantiles).to_list()
     bins_0 = np.unique(bins_0)
