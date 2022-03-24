@@ -1,6 +1,6 @@
 numpy
 pandas
 statsmodels
-sklearn
+scikit-learn
 matplotlib
 coverage
