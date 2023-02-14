@@ -6,7 +6,7 @@ from scipy.stats import t
 
 def cmds(D, k=2):
     """Classical multidimensional scaling
-    
+
     Theory and code references:
     https://en.wikipedia.org/wiki/Multidimensional_scaling#Classical_multidimensional_scaling
     http://www.nervouscomputer.com/hfs/cmdscale-in-python/
@@ -44,14 +44,14 @@ def cmds(D, k=2):
 
 
 def order_groups(X, feature):
-    """Assign an order to the values of a categorical feature. 
-    
-    The function returns an order to the unique values in X[feature] according to 
+    """Assign an order to the values of a categorical feature.
+
+    The function returns an order to the unique values in X[feature] according to
     their similarity based on the other features.
     The distance between two categories is the sum over the distances of each feature.
-    
+
     Arguments:
-    X -- A pandas DataFrame containing all the features to considering in the ordering 
+    X -- A pandas DataFrame containing all the features to considering in the ordering
     (including the categorical feature to be ordered).
     feature -- String, the name of the column holding the categorical feature to be ordered.
     """
@@ -106,12 +106,12 @@ def order_groups(X, feature):
 def quantile_ied(x_vec, q):
     """
     Inverse of empirical distribution function (quantile R type 1).
-    
+
     More details in
     https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.mstats.mquantiles.html
-    https://stat.ethz.ch/R-manual/R-devel/library/stats/html/quantile.html    
+    https://stat.ethz.ch/R-manual/R-devel/library/stats/html/quantile.html
     https://en.wikipedia.org/wiki/Quantile
-    
+
     Arguments:
     x_vec -- A pandas series containing the values to compute the quantile for
     q -- An array of probabilities (values between 0 and 1)
@@ -138,8 +138,8 @@ def quantile_ied(x_vec, q):
 
 def CI_estimate(x_vec, C=0.95):
     """Estimate the size of the confidence interval of a data sample.
-    
-    The confidence interval of the given data sample (x_vec) is 
+
+    The confidence interval of the given data sample (x_vec) is
     [mean(x_vec) - returned value, mean(x_vec) + returned value].
     """
     alpha = 1 - C

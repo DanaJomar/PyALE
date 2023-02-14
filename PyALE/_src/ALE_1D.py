@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-import random
 import matplotlib.pyplot as plt
 import matplotlib.transforms as mtrans
 
@@ -9,21 +8,21 @@ from .lib import quantile_ied, CI_estimate, order_groups
 
 def aleplot_1D_continuous(X, model, feature, grid_size=20, include_CI=True, C=0.95):
     """Compute the accumulated local effect of a numeric continuous feature.
-    
-    This function divides the feature in question into grid_size intervals (bins) 
-    and computes the difference in prediction between the first and last value 
+
+    This function divides the feature in question into grid_size intervals (bins)
+    and computes the difference in prediction between the first and last value
     of each interval and then centers the results.
 
     Arguments:
     X -- A pandas DataFrame to pass to the model for prediction.
     model -- Any python model with a predict method that accepts X as input.
     feature -- String, the name of the column holding the feature being studied.
-    grid_size -- An integer indicating the number of intervals into which the 
+    grid_size -- An integer indicating the number of intervals into which the
     feature range is divided.
-    include_CI -- A boolean, if True the confidence interval 
-    of the effect is returned with the results. 
+    include_CI -- A boolean, if True the confidence interval
+    of the effect is returned with the results.
     C -- A float the confidence level for which to compute the confidence interval
-    
+
     Return: A pandas DataFrame containing for each bin: the size of the sample in it
     and the accumulated centered effect of this bin.
     """
@@ -75,34 +74,34 @@ def aleplot_1D_continuous(X, model, feature, grid_size=20, include_CI=True, C=0.
 
 def aleplot_1D_discrete(X, model, feature, include_CI=True, C=0.95):
     """Compute the accumulated local effect of a numeric discrete feature.
-    
+
     This function computes the difference in prediction when the value of the feature
-    is replaced once with the value before it and once with the value after it, without 
+    is replaced once with the value before it and once with the value after it, without
     the need to divide into interval like the case of aleplot_1D_continuous.
 
     Arguments:
     X -- A pandas DataFrame to pass to the model for prediction.
     model -- Any python model with a predict method that accepts X as input.
     feature -- String, the name of the column holding the feature being studied.
-    include_CI -- A boolean, if True the confidence interval 
-    of the effect is returned with the results. 
+    include_CI -- A boolean, if True the confidence interval
+    of the effect is returned with the results.
     C -- A float the confidence level for which to compute the confidence interval
-    
-    Return: A pandas DataFrame containing for each value of the feature: the size 
+
+    Return: A pandas DataFrame containing for each value of the feature: the size
     of the sample in it and the accumulated centered effect around this value.
     """
 
     groups = X[feature].unique()
     groups.sort()
-    
-    groups_codes = {groups[x]:x for x in range(len(groups))}
+
+    groups_codes = {groups[x]: x for x in range(len(groups))}
     feature_codes = X[feature].replace(groups_codes).astype(int)
-    
+
     groups_counts = X.groupby(feature).size()
     groups_props = groups_counts / sum(groups_counts)
-    
+
     K = len(groups)
-    
+
     # create copies of the dataframe
     X_plus = X.copy()
     X_neg = X.copy()
@@ -125,15 +124,17 @@ def aleplot_1D_discrete(X, model, feature, include_CI=True, C=0.95):
         raise Exception(
             "Please check that your model is fitted, and accepts X as input."
         )
-    
+
     # compute prediction difference
     Delta_plus = y_hat_plus - y_hat[ind_plus]
     Delta_neg = y_hat[ind_neg] - y_hat_neg
-    
+
     # compute the mean of the difference per group
     delta_df = pd.concat(
         [
-            pd.DataFrame({"eff": Delta_plus, feature: groups[feature_codes[ind_plus] + 1]}),
+            pd.DataFrame(
+                {"eff": Delta_plus, feature: groups[feature_codes[ind_plus] + 1]}
+            ),
             pd.DataFrame({"eff": Delta_neg, feature: groups[feature_codes[ind_neg]]}),
         ]
     )
@@ -160,40 +161,40 @@ def aleplot_1D_categorical(
     X, model, feature, encode_fun, predictors, include_CI=True, C=0.95
 ):
     """Compute the accumulated local effect of a categorical (or str) feature.
-    
+
     The function computes the difference in prediction between the different groups
     similar to the function aleplot_1D_discrete.
-    This function relies on an ordering of the unique values/groups of the feature, 
+    This function relies on an ordering of the unique values/groups of the feature,
     if the feature is not an ordered categorical, then an ordering is computed,
-    which orders the groups by their similarity based on the distribution of the 
+    which orders the groups by their similarity based on the distribution of the
     other features in each group.
-    The function uses the given encoding function (for example a one-hot-encoding) 
-    and replaces the feature with the new generated (outputed) feature(s) before 
+    The function uses the given encoding function (for example a one-hot-encoding)
+    and replaces the feature with the new generated (outputed) feature(s) before
     it calls the function model.predict.
 
     Arguments:
-    X -- A pandas DataFrame containing all columns needed to pass to the model for 
-    prediction, however it should contain the original feature (before encoding) 
+    X -- A pandas DataFrame containing all columns needed to pass to the model for
+    prediction, however it should contain the original feature (before encoding)
     instead of the column(s) encoding it.
     model -- Any python model with a predict method that accepts X as input.
     feature -- String, the name of the column holding the feature being analysed.
-    encode_fun -- Function, used to encode the categorical feature, usually a 
+    encode_fun -- Function, used to encode the categorical feature, usually a
     one-hot encoder. The function's input and output are as follows
         * input: a DataFrame with one column (the feature)
-        * output: a DataFrame with the new column(s) encoding the feature. 
-        It is also important that this function should be able to handle missing 
+        * output: a DataFrame with the new column(s) encoding the feature.
+        It is also important that this function should be able to handle missing
         categories (for example, a one-hot-encoder applied to a column, in which
-        not all categories occur, should add a column of zeros for each missing 
-        category). Examples of use of this function could be found in the README 
-        file in github or in the description of the package in PyPI 
+        not all categories occur, should add a column of zeros for each missing
+        category). Examples of use of this function could be found in the README
+        file in github or in the description of the package in PyPI
         https://pypi.org/project/PyALE/.
-    predictors -- List or array of strings containing the names of features used 
+    predictors -- List or array of strings containing the names of features used
     in the model, and in the right order.
-    include_CI -- A boolean, if True the confidence interval of the effect is 
-    returned with the results. 
+    include_CI -- A boolean, if True the confidence interval of the effect is
+    returned with the results.
     C -- A float the confidence level for which to compute the confidence interval
-    
-    Return: A pandas DataFrame containing for each value of the feature: the size 
+
+    Return: A pandas DataFrame containing for each value of the feature: the size
     of the sample in it and the accumulated centered effect around this value.
     """
     # if the values of the feature are not ordered, then order them by
@@ -295,9 +296,9 @@ def aleplot_1D_categorical(
 
 def plot_1D_continuous_eff(res_df, X, fig=None, ax=None):
     """Plot the 1D ALE plot for a continuous feature.
-    
+
     Arguments:
-    res_df -- A pandas DataFrame containing the computed effects 
+    res_df -- A pandas DataFrame containing the computed effects
     (the output of ale_1D_continuous).
     X -- The dataset used to compute the effects.
     fig, ax -- matplotlib figure and axis.
@@ -359,7 +360,7 @@ def plot_1D_continuous_eff(res_df, X, fig=None, ax=None):
 
 def plot_1D_discrete_eff(res_df, X, fig=None, ax=None):
     """Plot the 1D ALE plot for a discrete feature.
-    
+
     Arguments:
     res_df -- A pandas DataFrame with the computed effects
     (the output of ale_1D_discrete).
