@@ -21,7 +21,9 @@ setuptools.setup(
         "scipy",
         "statsmodels",
     ],
-    extras_require={"dev": ["coverage"],},
+    extras_require={
+        "dev": ["coverage"],
+    },
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
