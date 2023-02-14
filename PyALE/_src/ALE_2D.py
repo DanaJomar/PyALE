@@ -150,7 +150,8 @@ def aleplot_2D_continuous(X, model, features, grid_size=40):
             )
             / 2
         )
-        .sum(level=0)
+        .groupby(level=0)
+        .sum()
         .div(sizes_0)
         .fillna(0)
         .cumsum()
@@ -163,7 +164,8 @@ def aleplot_2D_continuous(X, model, features, grid_size=40):
             * (eff_df_1.groupby(level=1).shift(periods=1, fill_value=0) + eff_df_1)
             / 2
         )
-        .sum(level=1)
+        .groupby(level=1)
+        .sum()
         .div(sizes_1)
         .fillna(0)
         .cumsum()

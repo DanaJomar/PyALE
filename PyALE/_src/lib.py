@@ -75,7 +75,7 @@ def order_groups(X, feature):
                 group = groups[i]
                 D_values = abs(cross_props - cross_props.loc[group]).sum(axis=1) / 2
                 D.loc[group, :] = D_values
-                D.loc[:, group] = D_values
+                D[group] = D_values
         else:
             # continuous feature j
             # e.g. j = 'length'
@@ -93,7 +93,7 @@ def order_groups(X, feature):
                 group = groups[i]
                 D_values = q_ecdf.apply(lambda x: max(abs(x - q_ecdf[group])))
                 D.loc[group, :] = D_values
-                D.loc[:, group] = D_values
+                D[group] = D_values
         D_cumu = D_cumu + D
     # reduce the dimension of the cumulative distance matrix to 1
     D1D = cmds(D_cumu, 1).flatten()
