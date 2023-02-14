@@ -17,7 +17,7 @@ setuptools.setup(
         "numpy",
         "pandas",
         "matplotlib",
-        "sklearn",
+        "scikit-learn",
         "scipy",
         "statsmodels",
     ],
