@@ -1,6 +1,22 @@
 name: Publish PyALE to TestPyPI and PyPI (with new tags)
 on: push
 jobs:
+  test-coverage:
+    name: Run tests and collect coverage report
+    runs-on: ubuntu-latest
+    steps:
+        - uses: actions/checkout@master
+        - name: Setup Python
+          uses: actions/setup-python@v1
+          with:
+            python-version: '3.10'
+          run: >-
+            pip install -r requirements.txt
+        - name: Generate Report
+          run: >-
+            coverage run -m --source=PyALE unittest discover -v
+        - name: Upload Coverage to Codecov
+          uses: codecov/codecov-action@v2
   build-n-publish:
     name: Build and publish PyALE to TestPyPI
     runs-on: ubuntu-latest
