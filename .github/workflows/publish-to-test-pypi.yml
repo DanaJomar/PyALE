@@ -16,6 +16,8 @@ jobs:
             coverage run -m --source=PyALE unittest discover -v
         - name: Upload Coverage to Codecov
           uses: codecov/codecov-action@v2
+          with:
+            token: ${{ secrets.CODECOV_TOKEN }}
   build-n-publish:
     name: Build and publish PyALE to TestPyPI
     runs-on: ubuntu-latest
