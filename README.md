@@ -1,5 +1,5 @@
 [![PyPI version](https://badge.fury.io/py/PyALE.svg)](https://badge.fury.io/py/PyALE)
-[![Build Status](https://travis-ci.org/DanaJomar/PyALE.svg?branch=master)](https://travis-ci.org/DanaJomar/PyALE)
+![Build Status](https://github.com/DanaJomar/PyALE/actions/workflows/publish-to-test-pypi.yml/badge.svg)
 [![codecov](https://codecov.io/gh/DanaJomar/PyALE/branch/master/graph/badge.svg)](https://codecov.io/gh/DanaJomar/PyALE)
 
 # PyALE
