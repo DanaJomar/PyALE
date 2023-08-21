@@ -52,6 +52,11 @@ jobs:
       - test-coverage
     steps:
     - uses: actions/checkout@v1
+    - name: Create meta.yaml file
+      run: |
+        conda install -c conda-forge grayskull
+        grayskull pypi --strict-conda-forge PyALE
+        mv PyALE conda
     - name: publish-to-conda
       uses: maxibor/conda-package-publish-action@v1.1
       with:
