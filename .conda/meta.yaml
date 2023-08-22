@@ -1,6 +1,6 @@
 {% set name = "PyALE" %}
 {% set data = load_setup_py_data() %}
-{% set version = {{ data['version'] }} %}
+{% set version = data['version'] %}
 
 package:
   name: {{ name|lower }}
@@ -17,7 +17,7 @@ build:
 
 requirements:
   build:
-    {% for package in data['setup_requires'] %}
+    {% for package in data.get('setup_requires', {}) %}
       - {{ package.lower() }}
     {% endfor %}
   run:
