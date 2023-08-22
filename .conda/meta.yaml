@@ -17,7 +17,7 @@ build:
 
 requirements:
   build:
-    {% for package in data.get('setup_requires', {}) %}
+    {% for package in data['setup_requires'] %}
       - {{ package.lower() }}
     {% endfor %}
   run:
