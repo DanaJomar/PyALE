@@ -6,10 +6,6 @@ package:
   name: {{ name|lower }}
   version: {{ version }}
 
-source:
-  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/PyALE-{{ version }}.tar.gz
-  sha256: 9053617f54b53b4d5205585eab3ce86f210bd3d1e2c5aac4305edc0455b5dc0b
-
 build:
   noarch: python
   script: {{ PYTHON }} -m pip install . -vv
