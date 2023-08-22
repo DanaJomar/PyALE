@@ -55,6 +55,8 @@ jobs:
     - name: Publish to conda
       run: |
         conda install -y -c conda-forge grayskull
+    - name: Create file
+      run: |
         grayskull pypi --strict-conda-forge PyALE
         cat ./PyALE/meta.yaml
                 
