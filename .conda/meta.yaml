@@ -1,12 +1,13 @@
 {% set name = "PyALE" %}
 {% set data = load_setup_py_data() %}
+{% set version = {{ data['version'] }} %}
 
 package:
   name: {{ name|lower }}
-  version: {{ data.get("version") }}
+  version: {{ version }}
 
 source:
-  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/PyALE-{{ data.get("version") }}.tar.gz
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/PyALE-{{ version }}.tar.gz
   sha256: 9053617f54b53b4d5205585eab3ce86f210bd3d1e2c5aac4305edc0455b5dc0b
 
 build:
@@ -15,6 +16,10 @@ build:
   number: 0
 
 requirements:
+  build:
+    {% for package in data.get('setup_requires', {}) %}
+      - {{ package.lower() }}
+    {% endfor %}
   run:
     {% for req in data.get('install_requires', []) %}
       - {{ req }}
