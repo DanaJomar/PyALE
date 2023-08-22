@@ -52,7 +52,10 @@ jobs:
       - test-coverage
     steps:
     - uses: actions/checkout@v1
-    - name: publish-to-conda
+    - name: See meta.yaml
+      run: >-
+        echo .conda/meta.yaml
+    - name: Publish to conda
       uses: MichaelsJP/conda-package-publish-action@v1.1.0
       with:
         subDir: '.conda'
