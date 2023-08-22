@@ -53,11 +53,9 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Publish to conda
-      uses: MichaelsJP/conda-package-publish-action@v1.1.0
-      with:
-        AnacondaToken: ${{ secrets.ANACONDA_TOKEN }}
-        platforms: 'all'
-        override: true
-        dry_run: true
+      run: |
+        conda install -y -c conda-forge grayskull
+        grayskull pypi --strict-conda-forge PyALE
+        cat ./PyALE/meta.yaml
                 
             
