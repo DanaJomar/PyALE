@@ -1,5 +1,6 @@
 [![PyPI version](https://badge.fury.io/py/PyALE.svg)](https://badge.fury.io/py/PyALE)
-![Build Status](https://github.com/DanaJomar/PyALE/actions/workflows/test-and-publish.yml/badge.svg)
+[![Conda Version](https://img.shields.io/conda/vn/conda-forge/pyale.svg)](https://anaconda.org/conda-forge/pyale)
+[![Build Status](https://github.com/DanaJomar/PyALE/actions/workflows/test-and-publish.yml/badge.svg)](https://github.com/DanaJomar/PyALE/actions/workflows/test-and-publish.yml/badge.svg)
 [![codecov](https://codecov.io/gh/DanaJomar/PyALE/branch/master/graph/badge.svg)](https://codecov.io/gh/DanaJomar/PyALE)
 
 # PyALE
