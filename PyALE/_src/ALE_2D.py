@@ -237,7 +237,7 @@ def plot_2D_continuous_eff(eff_grid, contour=False, fig=None, ax=None):
         eff_grid,
         origin="lower",
         extent=[X.min(), X.max(), Y.min(), Y.max()],
-        aspect='auto',
+        aspect="auto",
     )
     if contour:
         imc = ax.contour(X, Y, eff_grid, colors="black")
