@@ -192,14 +192,15 @@ ale_discr
 |4    |  67.279797  |  400  |   52.097705  |   82.461888 |
 
 ## Development
-* Installing the package in edit mode could be done with `pip install -e`
+
+* To install the package in edit mode, clone PyALE, navigate into its folder, and then execute `pip install -e .`
 * `unittest` is used for running the tests 
 * `coverage` is used to get the code coverage, which is not an installation requirement of this package, however will be installed if the dev flag was added to pip call i.e., `pip install -e ".[dev]"`
 * To get the code coverage report run 
     `coverage run -m --source=PyALE unittest discover -v` then 
     * for a fast report in the shell : `coverage report`
     * for a detailed html report: `coverage html`
-* The versions of the packages used during the development process are freezed in requirements.txt
+* The versions of the packages used during the development process are freezed in `requirements.txt`
 
 ### Possible Future Improvements
 
