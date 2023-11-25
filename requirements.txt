@@ -1,6 +1,7 @@
-numpy
-pandas
-statsmodels
-scikit-learn
-matplotlib
-coverage
+matplotlib=>3.6.1
+numpy=>1.22.4
+pandas=>2.0.1
+scikit_learn=>1.1.2
+scipy=>1.9.1
+setuptools=>58.1.0
+statsmodels=>0.14.0
