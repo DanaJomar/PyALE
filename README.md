@@ -6,17 +6,16 @@
 # PyALE
 
 **ALE**: Accumulated Local Effects <br>
-
-A python implementation of ALE plots based on the implementation of the R package [ALEPlot](https://github.com/cran/ALEPlot/blob/master/R/ALEPlot.R) 
+A python implementation of the ALE plots based on the implementation of the R package [ALEPlot](https://github.com/cran/ALEPlot/blob/master/R/ALEPlot.R) 
 
 ## Installation:
 Via pip `pip install PyALE`
 
 ## Features:
-The aim is to create the ALE plots from numerical and categorical features.
+The end goal is to be able to create the ALE plots whether was the feature numeric or categorical.
 
 ### For numeric features:
-The package offers the possibility to:
+The package offers the possibility to
 * Compute and plot the effect of one numeric feature (1D ALE)
     * including the option to compute a confidence interval of the effect.
 * Compute and plot the effect of two numeric features (2D ALE)
@@ -193,15 +192,14 @@ ale_discr
 |4    |  67.279797  |  400  |   52.097705  |   82.461888 |
 
 ## Development
-
-* To install the package in edit mode, clone PyALE, navigate into its folder, and then execute `pip install -e .`
+* Installing the package in edit mode could be done with `pip install -e`
 * `unittest` is used for running the tests 
 * `coverage` is used to get the code coverage, which is not an installation requirement of this package, however will be installed if the dev flag was added to pip call i.e., `pip install -e ".[dev]"`
 * To get the code coverage report run 
     `coverage run -m --source=PyALE unittest discover -v` then 
     * for a fast report in the shell : `coverage report`
     * for a detailed html report: `coverage html`
-* The versions of the packages used during the development process are freezed in `requirements.txt`
+* The versions of the packages used during the development process are freezed in requirements.txt
 
 ### Possible Future Improvements
 
