@@ -6,16 +6,17 @@
 # PyALE
 
 **ALE**: Accumulated Local Effects <br>
-A python implementation of the ALE plots based on the implementation of the R package [ALEPlot](https://github.com/cran/ALEPlot/blob/master/R/ALEPlot.R) 
+
+A python implementation of ALE plots based on the implementation of the R package [ALEPlot](https://github.com/cran/ALEPlot/blob/master/R/ALEPlot.R) 
 
 ## Installation:
 Via pip `pip install PyALE`
 
 ## Features:
-The end goal is to be able to create the ALE plots whether was the feature numeric or categorical.
+The aim is to create the ALE plots from numerical and categorical features.
 
 ### For numeric features:
-The package offers the possibility to
+The package offers the possibility to:
 * Compute and plot the effect of one numeric feature (1D ALE)
     * including the option to compute a confidence interval of the effect.
 * Compute and plot the effect of two numeric features (2D ALE)
