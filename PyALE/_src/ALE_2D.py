@@ -94,11 +94,11 @@ def aleplot_2D_continuous(X, model, features, grid_size=40, impute_empty_cells=T
     sizes_0 = sizes_df.groupby(level=0).sum().reindex(range(len(bins_0)), fill_value=0)
     sizes_1 = sizes_df.groupby(level=1).sum().reindex(range(len(bins_0)), fill_value=0)
 
-    if impute_empty_cells is True:
-        eff_df = delta_df["mean"].reindex(index_combinations, fill_value=np.nan)
+    eff_df = delta_df["mean"].reindex(index_combinations, fill_value=np.nan)
 
-        # ============== fill in the effects of missing combinations ================= #
-        # ============== use the kd-tree nearest neighbour algorithm ================= #
+    # ============== fill in the effects of missing combinations ================= #
+    # ============== use the kd-tree nearest neighbour algorithm ================= #
+    if impute_empty_cells is True:
         row_na_idx = np.where(eff_df.isna())[0]
         feat0_code_na = eff_df.iloc[row_na_idx].index.get_level_values(0)
         feat1_code_na = eff_df.iloc[row_na_idx].index.get_level_values(1)
@@ -135,9 +135,6 @@ def aleplot_2D_continuous(X, model, features, grid_size=40, impute_empty_cells=T
             eff_df.iloc[row_na_idx] = eff_df.iloc[
                 row_notna_idx[indices.flatten()]
             ].to_list()
-
-    else:
-        eff_df = delta_df["mean"].reindex(index_combinations, fill_value=0)
 
     # ============== cumulative sum of the difference ================= #
     eff_df = eff_df.groupby(level=0).cumsum().groupby(level=1).cumsum()
