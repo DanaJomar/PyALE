@@ -7,7 +7,7 @@ from sklearn.neighbors import NearestNeighbors
 from .lib import quantile_ied
 
 
-def aleplot_2D_continuous(X, model, features, grid_size=40):
+def aleplot_2D_continuous(X, model, features, grid_size=40, impute_empty_cells=True):
     """Compute the two dimentional accumulated local effect of a two numeric continuous features.
 
     This function divides the space of the two features into a grid of size
@@ -94,46 +94,50 @@ def aleplot_2D_continuous(X, model, features, grid_size=40):
     sizes_0 = sizes_df.groupby(level=0).sum().reindex(range(len(bins_0)), fill_value=0)
     sizes_1 = sizes_df.groupby(level=1).sum().reindex(range(len(bins_0)), fill_value=0)
 
-    eff_df = delta_df["mean"].reindex(index_combinations, fill_value=np.nan)
+    if impute_empty_cells is True:
+        eff_df = delta_df["mean"].reindex(index_combinations, fill_value=np.nan)
 
-    # ============== fill in the effects of missing combinations ================= #
-    # ============== use the kd-tree nearest neighbour algorithm ================= #
-    row_na_idx = np.where(eff_df.isna())[0]
-    feat0_code_na = eff_df.iloc[row_na_idx].index.get_level_values(0)
-    feat1_code_na = eff_df.iloc[row_na_idx].index.get_level_values(1)
+        # ============== fill in the effects of missing combinations ================= #
+        # ============== use the kd-tree nearest neighbour algorithm ================= #
+        row_na_idx = np.where(eff_df.isna())[0]
+        feat0_code_na = eff_df.iloc[row_na_idx].index.get_level_values(0)
+        feat1_code_na = eff_df.iloc[row_na_idx].index.get_level_values(1)
 
-    row_notna_idx = np.where(eff_df.notna())[0]
-    feat0_code_notna = eff_df.iloc[row_notna_idx].index.get_level_values(0)
-    feat1_code_notna = eff_df.iloc[row_notna_idx].index.get_level_values(1)
+        row_notna_idx = np.where(eff_df.notna())[0]
+        feat0_code_notna = eff_df.iloc[row_notna_idx].index.get_level_values(0)
+        feat1_code_notna = eff_df.iloc[row_notna_idx].index.get_level_values(1)
 
-    if len(row_na_idx) != 0:
-        range0 = bins_0.max() - bins_0.min()
-        range1 = bins_1.max() - bins_1.min()
+        if len(row_na_idx) != 0:
+            range0 = bins_0.max() - bins_0.min()
+            range1 = bins_1.max() - bins_1.min()
 
-        feats_at_na = pd.DataFrame(
-            {
-                features[0]: (bins_0[feat0_code_na - 1] + bins_0[feat0_code_na])
-                / (2 * range0),
-                features[1]: (bins_1[feat1_code_na - 1] + bins_1[feat1_code_na])
-                / (2 * range1),
-            }
-        )
-        feats_at_notna = pd.DataFrame(
-            {
-                features[0]: (bins_0[feat0_code_notna - 1] + bins_0[feat0_code_notna])
-                / (2 * range0),
-                features[1]: (bins_1[feat1_code_notna - 1] + bins_1[feat1_code_notna])
-                / (2 * range1),
-            }
-        )
-        # fit the algorithm with the features where the effect is not missing
-        nbrs = NearestNeighbors(n_neighbors=1, algorithm="kd_tree").fit(feats_at_notna)
-        # find the neighbours of the features where the effect is missing
-        distances, indices = nbrs.kneighbors(feats_at_na)
-        # fill the missing effects with the effects of the nearest neighbours
-        eff_df.iloc[row_na_idx] = eff_df.iloc[
-            row_notna_idx[indices.flatten()]
-        ].to_list()
+            feats_at_na = pd.DataFrame(
+                {
+                    features[0]: (bins_0[feat0_code_na - 1] + bins_0[feat0_code_na])
+                    / (2 * range0),
+                    features[1]: (bins_1[feat1_code_na - 1] + bins_1[feat1_code_na])
+                    / (2 * range1),
+                }
+            )
+            feats_at_notna = pd.DataFrame(
+                {
+                    features[0]: (bins_0[feat0_code_notna - 1] + bins_0[feat0_code_notna])
+                    / (2 * range0),
+                    features[1]: (bins_1[feat1_code_notna - 1] + bins_1[feat1_code_notna])
+                    / (2 * range1),
+                }
+            )
+            # fit the algorithm with the features where the effect is not missing
+            nbrs = NearestNeighbors(n_neighbors=1, algorithm="kd_tree").fit(feats_at_notna)
+            # find the neighbours of the features where the effect is missing
+            distances, indices = nbrs.kneighbors(feats_at_na)
+            # fill the missing effects with the effects of the nearest neighbours
+            eff_df.iloc[row_na_idx] = eff_df.iloc[
+                row_notna_idx[indices.flatten()]
+            ].to_list()
+
+    else:
+        eff_df = delta_df["mean"].reindex(index_combinations, fill_value=0)
 
     # ============== cumulative sum of the difference ================= #
     eff_df = eff_df.groupby(level=0).cumsum().groupby(level=1).cumsum()
