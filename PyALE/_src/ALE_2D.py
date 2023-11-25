@@ -234,7 +234,10 @@ def plot_2D_continuous_eff(eff_grid, contour=False, fig=None, ax=None):
     if fig is None and ax is None:
         fig, ax = plt.subplots()
     im = ax.imshow(
-        eff_grid, origin="lower", extent=[X.min(), X.max(), Y.min(), Y.max()]
+        eff_grid,
+        origin="lower",
+        extent=[X.min(), X.max(), Y.min(), Y.max()],
+        aspect='auto',
     )
     if contour:
         imc = ax.contour(X, Y, eff_grid, colors="black")
