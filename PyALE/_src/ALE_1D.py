@@ -27,7 +27,7 @@ def aleplot_1D_continuous(X, model, feature, grid_size=20, include_CI=True, C=0.
     and the accumulated centered effect of this bin.
     """
 
-    quantiles = np.append(0, np.arange(1 / grid_size, 1 + 1 / grid_size, 1 / grid_size))
+    quantiles = np.linspace(0, 1, grid_size + 1, endpoint=True)
     # use customized quantile function to get the same result as
     # type 1 R quantile (Inverse of empirical distribution function)
     bins = [X[feature].min()] + quantile_ied(X[feature], quantiles).to_list()
