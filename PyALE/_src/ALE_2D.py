@@ -140,12 +140,12 @@ def aleplot_2D_continuous(X, model, features, grid_size=40):
 
     # ============== centering with the moving average ================= #
     # subtract the cumulative sum of the mean of 1D moving average (for each axis)
-    eff_df_0 = eff_df - eff_df.groupby(level=1).shift(periods=1, axis=0, fill_value=0)
+    eff_df_0 = eff_df - eff_df.groupby(level=1).shift(periods=1, fill_value=0)
     fJ0 = (
         (
             sizes_df
             * (
-                eff_df_0.groupby(level=0).shift(periods=1, axis=0, fill_value=0)
+                eff_df_0.groupby(level=0).shift(periods=1, fill_value=0)
                 + eff_df_0
             )
             / 2
@@ -157,7 +157,7 @@ def aleplot_2D_continuous(X, model, features, grid_size=40):
         .cumsum()
     )
 
-    eff_df_1 = eff_df - eff_df.groupby(level=0).shift(periods=1, axis=0, fill_value=0)
+    eff_df_1 = eff_df - eff_df.groupby(level=0).shift(periods=1, fill_value=0)
     fJ1 = (
         (
             sizes_df
