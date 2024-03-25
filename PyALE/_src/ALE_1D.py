@@ -50,7 +50,9 @@ def aleplot_1D_continuous(X, model, feature, grid_size=20, include_CI=True, C=0.
         )
 
     delta_df = pd.DataFrame({feature: bins[bin_codes + 1], "Delta": y_2 - y_1})
-    res_df = delta_df.groupby([feature]).Delta.agg([("eff", "mean"), "size"])
+    res_df = delta_df.groupby([feature], observed=False).Delta.agg(
+        [("eff", "mean"), "size"]
+    )
     res_df["eff"] = res_df["eff"].cumsum()
     res_df.loc[min(bins), :] = 0
     # subtract the total average of a moving average of size 2
@@ -59,7 +61,7 @@ def aleplot_1D_continuous(X, model, feature, grid_size=20, include_CI=True, C=0.
     ).sum() / res_df["size"].sum()
     res_df = res_df.sort_index().assign(eff=res_df["eff"] - mean_mv_avg)
     if include_CI:
-        ci_est = delta_df.groupby(feature).Delta.agg(
+        ci_est = delta_df.groupby(feature, observed=False).Delta.agg(
             [("CI_estimate", lambda x: CI_estimate(x, C=C))]
         )
         ci_est = ci_est.sort_index()
@@ -97,7 +99,7 @@ def aleplot_1D_discrete(X, model, feature, include_CI=True, C=0.95):
     groups_codes = {groups[x]: x for x in range(len(groups))}
     feature_codes = X[feature].replace(groups_codes).astype(int)
 
-    groups_counts = X.groupby(feature).size()
+    groups_counts = X.groupby(feature, observed=False).size()
     groups_props = groups_counts / sum(groups_counts)
 
     K = len(groups)
@@ -138,14 +140,14 @@ def aleplot_1D_discrete(X, model, feature, include_CI=True, C=0.95):
             pd.DataFrame({"eff": Delta_neg, feature: groups[feature_codes[ind_neg]]}),
         ]
     )
-    res_df = delta_df.groupby([feature]).mean()
+    res_df = delta_df.groupby([feature], observed=False).mean()
     res_df["eff"] = res_df["eff"].cumsum()
     res_df.loc[groups[0]] = 0
     res_df = res_df.sort_index()
     res_df["eff"] = res_df["eff"] - sum(res_df["eff"] * groups_props)
     res_df["size"] = groups_counts
     if include_CI:
-        ci_est = delta_df.groupby([feature]).eff.agg(
+        ci_est = delta_df.groupby([feature], observed=False).eff.agg(
             [("CI_estimate", lambda x: CI_estimate(x, C=C))]
         )
         lowerCI_name = "lowerCI_" + str(int(C * 100)) + "%"
@@ -211,7 +213,7 @@ def aleplot_1D_categorical(
     groups = X[feature].unique()
     groups = groups.sort_values()
     feature_codes = X[feature].cat.codes
-    groups_counts = X.groupby(feature).size()
+    groups_counts = X.groupby(feature, observed=False).size()
     groups_props = groups_counts / sum(groups_counts)
 
     K = len(groups)
@@ -274,7 +276,7 @@ def aleplot_1D_categorical(
             pd.DataFrame({"eff": Delta_neg, feature: groups[feature_codes[ind_neg]]}),
         ]
     )
-    res_df = delta_df.groupby([feature]).mean()
+    res_df = delta_df.groupby([feature], observed=False).mean()
     res_df["eff"] = res_df["eff"].cumsum()
     res_df.loc[groups[0]] = 0
     # sort the index (which is at this point an ordered categorical) as a safety measure
@@ -282,7 +284,7 @@ def aleplot_1D_categorical(
     res_df["eff"] = res_df["eff"] - sum(res_df["eff"] * groups_props)
     res_df["size"] = groups_counts
     if include_CI:
-        ci_est = delta_df.groupby([feature]).eff.agg(
+        ci_est = delta_df.groupby([feature], observed=False).eff.agg(
             [("CI_estimate", lambda x: CI_estimate(x, C=C))]
         )
         lowerCI_name = "lowerCI_" + str(int(C * 100)) + "%"
