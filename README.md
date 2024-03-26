@@ -3,7 +3,7 @@
 [![Build Status](https://github.com/DanaJomar/PyALE/actions/workflows/test-and-publish.yml/badge.svg)](https://github.com/DanaJomar/PyALE/actions/workflows/test-and-publish.yml/badge.svg)
 [![codecov](https://codecov.io/gh/DanaJomar/PyALE/branch/master/graph/badge.svg)](https://codecov.io/gh/DanaJomar/PyALE)
 
-# PyALE
+# PyALE <img src="https://raw.githubusercontent.com/DanaJomar/PyALE/master/.github/pyale-hex-thicker.png" align="right" height="256" alt="pyale logo"/>
 
 **ALE**: Accumulated Local Effects <br>
 A python implementation of the ALE plots based on the implementation of the R package [ALEPlot](https://github.com/cran/ALEPlot/blob/master/R/ALEPlot.R) 
@@ -211,3 +211,10 @@ ale_discr
 * https://christophm.github.io/interpretable-ml-book/ale.html
 
   
+* Logo is designed by [Clemens Zauchner](https://github.com/clemens-zauchner) with the help of AI tools. 
+<br>Used tools:
+    
+    * OpenAI ChatGPT 3.5
+    * Microsoft Bing Image Creator from Designer, Powered by DALL·E 3
+    * GNU Image Manipulation Program version 2.10.30
+    * WPS Presentation v11.1.0.11698-release 
