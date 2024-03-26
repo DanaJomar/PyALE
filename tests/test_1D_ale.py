@@ -13,19 +13,22 @@ from PyALE._src.ALE_1D import (
     plot_1D_discrete_eff,
 )
 
+
 def onehot_encode(feat):
     ohe = OneHotEncoder().fit(feat)
     col_names = ohe.categories_[0]
     feat_coded = pd.DataFrame(ohe.transform(feat).toarray())
     feat_coded.columns = col_names
     return feat_coded
-    
-def onehot_encode_custom(feat, groups=['A', 'C', 'B']):
+
+
+def onehot_encode_custom(feat, groups=["A", "C", "B"]):
     feat_coded = onehot_encode(feat)
     missing_feat = [x for x in groups if x not in feat_coded.columns]
     if missing_feat:
         feat_coded[missing_feat] = 0
     return feat_coded
+
 
 class Test1DFunctions(unittest.TestCase):
     def setUp(self):
@@ -181,7 +184,8 @@ class Test1Ddiscrete(Test1DFunctions):
             X=self.X_cleaned, model=self.model, feature="x4", include_CI=False
         )
         self.assertCountEqual(
-            ale_eff.index, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+            ale_eff.index,
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         )
 
     def test_effvalues(self):
@@ -261,36 +265,36 @@ class Test1Ddiscrete(Test1DFunctions):
 class Test1Ddiscrete(Test1DFunctions):
     def test_indexname(self):
         ale_eff = aleplot_1D_categorical(
-            X=self.X, 
+            X=self.X,
             model=self.model,
-            feature="x5", 
+            feature="x5",
             predictors=self.X_cleaned.columns,
-            encode_fun=onehot_encode_custom, 
-            include_CI=False
+            encode_fun=onehot_encode_custom,
+            include_CI=False,
         )
         self.assertEqual(ale_eff.index.name, "x5")
 
     def test_outputshape_noCI(self):
         ale_eff = aleplot_1D_categorical(
-            X=self.X, 
+            X=self.X,
             model=self.model,
-            feature="x5", 
+            feature="x5",
             predictors=self.X_cleaned.columns,
-            encode_fun=onehot_encode_custom, 
-            include_CI=False
+            encode_fun=onehot_encode_custom,
+            include_CI=False,
         )
         self.assertEqual(ale_eff.shape, (3, 2))
         self.assertCountEqual(ale_eff.columns, ["eff", "size"])
 
     def test_outputshape_withCI(self):
         ale_eff = aleplot_1D_categorical(
-            X=self.X, 
+            X=self.X,
             model=self.model,
-            feature="x5", 
+            feature="x5",
             predictors=self.X_cleaned.columns,
-            encode_fun=onehot_encode_custom, 
+            encode_fun=onehot_encode_custom,
             include_CI=True,
-            C=0.9
+            C=0.9,
         )
         self.assertEqual(ale_eff.shape, (3, 4))
         self.assertCountEqual(
@@ -299,53 +303,52 @@ class Test1Ddiscrete(Test1DFunctions):
 
     def test_bins(self):
         ale_eff = aleplot_1D_categorical(
-            X=self.X, 
+            X=self.X,
             model=self.model,
-            feature="x5", 
+            feature="x5",
             predictors=self.X_cleaned.columns,
-            encode_fun=onehot_encode_custom, 
-            include_CI=False
+            encode_fun=onehot_encode_custom,
+            include_CI=False,
         )
         self.assertCountEqual(
-            ale_eff.index, ['A', 'B', 'C'],
+            ale_eff.index,
+            ["A", "B", "C"],
         )
 
     def test_effvalues(self):
         ale_eff = aleplot_1D_categorical(
-            X=self.X, 
+            X=self.X,
             model=self.model,
-            feature="x5", 
+            feature="x5",
             predictors=self.X_cleaned.columns,
-            encode_fun=onehot_encode_custom, 
-            include_CI=False
+            encode_fun=onehot_encode_custom,
+            include_CI=False,
         )
         self.assertCountEqual(
             np.round(ale_eff.loc[:, "eff"], 8),
-            [-0.05565697,  0.02367971,  0.02044105],
+            [-0.05565697, 0.02367971, 0.02044105],
         )
 
     def test_binsizes(self):
         ale_eff = aleplot_1D_categorical(
-            X=self.X, 
+            X=self.X,
             model=self.model,
-            feature="x5", 
+            feature="x5",
             predictors=self.X_cleaned.columns,
-            encode_fun=onehot_encode_custom, 
-            include_CI=False
+            encode_fun=onehot_encode_custom,
+            include_CI=False,
         )
-        self.assertCountEqual(
-            ale_eff.loc[:, "size"], [57, 77, 66]
-        )
+        self.assertCountEqual(ale_eff.loc[:, "size"], [57, 77, 66])
 
     def test_CIvalues(self):
         ale_eff = aleplot_1D_categorical(
-            X=self.X, 
+            X=self.X,
             model=self.model,
-            feature="x5", 
+            feature="x5",
             predictors=self.X_cleaned.columns,
-            encode_fun=onehot_encode_custom, 
+            encode_fun=onehot_encode_custom,
             include_CI=True,
-            C=0.9
+            C=0.9,
         )
         # assert that the first bin do not have a CI
         self.assertTrue(np.isnan(ale_eff.loc[ale_eff.index[0], "lowerCI_90%"]))
@@ -359,33 +362,34 @@ class Test1Ddiscrete(Test1DFunctions):
             np.round(ale_eff.loc[ale_eff.index[1] :, "upperCI_90%"], 8),
             [0.05341192, 0.04611233],
         )
+
     def test_exceptions(self):
         mod_not_fit = RandomForestRegressor()
         # dataset should be compatible with the model
         with self.assertRaises(Exception) as mod_ex_1:
             aleplot_1D_categorical(
-                X=self.X, 
+                X=self.X,
                 model=self.model.predict,
-                feature="x5", 
+                feature="x5",
                 predictors=self.X_cleaned.columns,
                 encode_fun=onehot_encode_custom,
-                )
+            )
         with self.assertRaises(Exception) as mod_ex_2:
             aleplot_1D_categorical(
-                X=self.X, 
+                X=self.X,
                 model=self.model,
-                feature="x5", 
+                feature="x5",
                 predictors=self.X.columns,
                 encode_fun=onehot_encode_custom,
-                )
+            )
         with self.assertRaises(Exception) as mod_ex_3:
             aleplot_1D_categorical(
-                X=self.X, 
+                X=self.X,
                 model=self.model,
-                feature="x5", 
+                feature="x5",
                 predictors=self.X_cleaned.columns,
                 encode_fun=onehot_encode,
-                )
+            )
         mod_ex_msg = (
             """There seems to be a problem when predicting with the model.
             Please check the following: 
@@ -426,6 +430,9 @@ class TestContPlottingFun(Test1DFunctions):
             grid_size=5,
             include_CI=True,
         )
+        sorted_values = self.X_cleaned["x1"].sort_values()
+        values_diff = abs(sorted_values.shift() - sorted_values)
+
         fig, ax = plot_1D_continuous_eff(ale_eff, self.X_cleaned)
         ## the rug
         rug_plot_data = ax.lines[1].get_xydata()
@@ -447,7 +454,8 @@ class TestContPlottingFun(Test1DFunctions):
                     ).cat.codes
                     + 1
                 ]
-                > rug_plot_data[:, 0]
+                + values_diff[values_diff > 0].min()
+                >= rug_plot_data[:, 0]
             )
             and np.all(
                 ale_eff.index[
@@ -455,6 +463,7 @@ class TestContPlottingFun(Test1DFunctions):
                         self.X_cleaned["x1"], ale_eff.index, include_lowest=True
                     ).cat.codes
                 ]
+                - values_diff[values_diff > 0].min()
                 < rug_plot_data[:, 0]
             )
         )
