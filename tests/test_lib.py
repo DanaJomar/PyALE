@@ -15,9 +15,7 @@ class TestlibFunctions(unittest.TestCase):
         x4 = np.random.choice(range(10), 200)
         x5 = (x1 + x2 + x3) * x4 - 1
         self.X = pd.DataFrame({"x1": x1, "x2": x2, "x3": x3, "x4": x4, "x5": x5})
-        self.X.loc[:, "x5"] = [
-            "a" if x > 5 else "b" if x < 0 else "c" for x in self.X["x5"]
-        ]
+        self.X["x5"] = ["a" if x > 5 else "b" if x < 0 else "c" for x in self.X["x5"]]
         np.random.seed(2301)
         self.dist_mat = np.random.rand(10, 10)
 
@@ -35,7 +33,8 @@ class TestlibFunctions(unittest.TestCase):
         self.assertEqual(cmds_res.shape, (10, 2))
         self.assertCountEqual(np.round(cmds_res[0], 8), [-0.27720001, 0.30273103])
         self.assertCountEqual(
-            np.round(cmds_res[:3, 0], 8), [-0.27720001, -0.12125997, 0.23333853],
+            np.round(cmds_res[:3, 0], 8),
+            [-0.27720001, -0.12125997, 0.23333853],
         )
 
     def test_quantile_ied(self):

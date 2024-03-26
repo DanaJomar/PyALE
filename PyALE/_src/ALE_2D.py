@@ -141,12 +141,12 @@ def aleplot_2D_continuous(X, model, features, grid_size=40, impute_empty_cells=T
 
     # ============== centering with the moving average ================= #
     # subtract the cumulative sum of the mean of 1D moving average (for each axis)
-    eff_df_0 = eff_df - eff_df.groupby(level=1).shift(periods=1, axis=0, fill_value=0)
+    eff_df_0 = eff_df - eff_df.groupby(level=1).shift(periods=1, fill_value=0)
     fJ0 = (
         (
             sizes_df
             * (
-                eff_df_0.groupby(level=0).shift(periods=1, axis=0, fill_value=0)
+                eff_df_0.groupby(level=0).shift(periods=1, fill_value=0)
                 + eff_df_0
             )
             / 2
@@ -158,7 +158,7 @@ def aleplot_2D_continuous(X, model, features, grid_size=40, impute_empty_cells=T
         .cumsum()
     )
 
-    eff_df_1 = eff_df - eff_df.groupby(level=0).shift(periods=1, axis=0, fill_value=0)
+    eff_df_1 = eff_df - eff_df.groupby(level=0).shift(periods=1, fill_value=0)
     fJ1 = (
         (
             sizes_df
@@ -235,7 +235,10 @@ def plot_2D_continuous_eff(eff_grid, contour=False, fig=None, ax=None):
     if fig is None and ax is None:
         fig, ax = plt.subplots()
     im = ax.imshow(
-        eff_grid, origin="lower", extent=[X.min(), X.max(), Y.min(), Y.max()]
+        eff_grid,
+        origin="lower",
+        extent=[X.min(), X.max(), Y.min(), Y.max()],
+        aspect="auto",
     )
     if contour:
         imc = ax.contour(X, Y, eff_grid, colors="black")
