@@ -22,6 +22,7 @@ def ale(
     feature,
     feature_type="auto",
     grid_size=20,
+    impute_empty_cells=True,
     include_CI=True,
     C=0.95,
     encode_fun=None,
@@ -40,21 +41,22 @@ def ale(
     The table bellow shows which arguments are for which type of effect relevant,
     and what is (if any) the default value for each.
 
-    |   Argument   | 1D continuous | 1D discrete | 1D categorical | 2D (continuous) |  Default |
-    | ------------ | ------------  | ----------- | -------------- | --------------- | -------- |
-    | X            |       x       |      x      |        x       |        x        |          |
-    | model        |       x       |      x      |        x       |        x        |          |
-    | feature      |       x       |      x      |        x       |        x        |          |
-    | feature_type |       x       |      x      |        x       |                 |  'auto'  |
-    | grid_size    |       x       |             |                |        x        |    20    |
-    | include_CI   |       x       |      x      |        x       |                 |   True   |
-    | C            |       x       |      x      |        x       |                 |   0.95   |
-    | encode_fun   |               |             |        x       |                 |   None   |
-    | predictors   |               |             |        x       |                 |   None   |
-    | plot         |       x       |      x      |        x       |        x        |   True   |
-    | contour      |               |             |                |        x        |   False  |
-    | fig          |       x       |      x      |        x       |        x        |   None   |
-    | ax           |       x       |      x      |        x       |        x        |   None   |
+    |      Argument       | 1D continuous | 1D discrete | 1D categorical | 2D (continuous) |  Default |
+    | ------------------- | ------------  | ----------- | -------------- | --------------- | -------- |
+    | X                   |       x       |      x      |        x       |        x        |          |
+    | model               |       x       |      x      |        x       |        x        |          |
+    | feature             |       x       |      x      |        x       |        x        |          |
+    | feature_type        |       x       |      x      |        x       |                 |  'auto'  |
+    | grid_size           |       x       |             |                |        x        |    20    |
+    | impute_empty_cells  |               |             |                |        x        |   True   |
+    | include_CI          |       x       |      x      |        x       |                 |   True   |
+    | C                   |       x       |      x      |        x       |                 |   0.95   |
+    | encode_fun          |               |             |        x       |                 |   None   |
+    | predictors          |               |             |        x       |                 |   None   |
+    | plot                |       x       |      x      |        x       |        x        |   True   |
+    | contour             |               |             |                |        x        |   False  |
+    | fig                 |       x       |      x      |        x       |        x        |   None   |
+    | ax                  |       x       |      x      |        x       |        x        |   None   |
 
     Arguments:
     X
@@ -83,6 +85,10 @@ def ale(
     ----
         An integer indicating the number of intervals into which the feature range
         is divided.
+    impute_empty_cells
+    ----
+        A boolean indicating if empty cells created for 2-D ale plots should be imputed
+        (`True`) or treated as missing (`False`).
     include_CI
     ----
         A boolean, if True the confidence interval of the effect is returned with
@@ -147,6 +153,8 @@ def ale(
             "The argument 'feature_type' should be 'auto', 'continuous', "
             "'discrete', or 'categorical'"
         )
+    if not isinstance(impute_empty_cells, bool):
+        raise Exception("The argument 'impute_empty_cells' should be True or False.")
 
     # if one feature is given
     if len(feature) == 1:
@@ -243,6 +251,7 @@ def ale(
             "model": model,
             "features": feature,
             "grid_size": grid_size,
+            "impute_empty_cells": impute_empty_cells,
         }
         arg_plot = {
             "contour": contour,
