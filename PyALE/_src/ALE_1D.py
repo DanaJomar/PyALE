@@ -309,23 +309,16 @@ def plot_1D_continuous_eff(res_df, X, fig=None, ax=None):
     feature_name = res_df.index.name
     # position: jitter
     # to see the distribution of the data points clearer, each point x will be nudged a random value between
-    # -0.5*(distance from the bin's lower value) and +0.5*(distance from bin's upper value)
-    jitter_limits = pd.DataFrame(
-        {
-            "x": X[feature_name],
-            "bin_code": pd.cut(
-                X[feature_name], res_df.index.to_list(), include_lowest=True
-            ).cat.codes
-            + 1,
-        }
-    ).assign(
-        jitter_step_min=lambda df: (df["x"] - res_df.index[df["bin_code"] - 1]) * 0.5,
-        jitter_step_max=lambda df: (res_df.index[df["bin_code"]] - df["x"]) * 0.5,
-    )
+    # -minimum distance between two data points and +
+    sorted_values = X[feature_name].sort_values()
+    values_diff = abs(sorted_values.shift() - sorted_values)
     np.random.seed(123)
-    rug = jitter_limits.apply(
-        lambda row: row["x"]
-        + np.random.uniform(-row["jitter_step_min"], row["jitter_step_max"]),
+    rug = X.apply(
+        lambda row: row[feature_name]
+        + np.random.uniform(
+            -values_diff[values_diff > 0].min() / 2,
+            values_diff[values_diff > 0].min() / 2,
+        ),
         axis=1,
     )
 
