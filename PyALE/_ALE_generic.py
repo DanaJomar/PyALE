@@ -41,21 +41,22 @@ def ale(
     The table bellow shows which arguments are for which type of effect relevant,
     and what is (if any) the default value for each.
 
-    |   Argument   | 1D continuous | 1D discrete | 1D categorical | 2D (continuous) |  Default |
-    | ------------ | ------------  | ----------- | -------------- | --------------- | -------- |
-    | X            |       x       |      x      |        x       |        x        |          |
-    | model        |       x       |      x      |        x       |        x        |          |
-    | feature      |       x       |      x      |        x       |        x        |          |
-    | feature_type |       x       |      x      |        x       |                 |  'auto'  |
-    | grid_size    |       x       |             |                |        x        |    20    |
-    | include_CI   |       x       |      x      |        x       |                 |   True   |
-    | C            |       x       |      x      |        x       |                 |   0.95   |
-    | encode_fun   |               |             |        x       |                 |   None   |
-    | predictors   |               |             |        x       |                 |   None   |
-    | plot         |       x       |      x      |        x       |        x        |   True   |
-    | contour      |               |             |                |        x        |   False  |
-    | fig          |       x       |      x      |        x       |        x        |   None   |
-    | ax           |       x       |      x      |        x       |        x        |   None   |
+    |      Argument       | 1D continuous | 1D discrete | 1D categorical | 2D (continuous) |  Default |
+    | ------------------- | ------------  | ----------- | -------------- | --------------- | -------- |
+    | X                   |       x       |      x      |        x       |        x        |          |
+    | model               |       x       |      x      |        x       |        x        |          |
+    | feature             |       x       |      x      |        x       |        x        |          |
+    | feature_type        |       x       |      x      |        x       |                 |  'auto'  |
+    | grid_size           |       x       |             |                |        x        |    20    |
+    | impute_empty_cells  |               |             |                |        x        |   True   |
+    | include_CI          |       x       |      x      |        x       |                 |   True   |
+    | C                   |       x       |      x      |        x       |                 |   0.95   |
+    | encode_fun          |               |             |        x       |                 |   None   |
+    | predictors          |               |             |        x       |                 |   None   |
+    | plot                |       x       |      x      |        x       |        x        |   True   |
+    | contour             |               |             |                |        x        |   False  |
+    | fig                 |       x       |      x      |        x       |        x        |   None   |
+    | ax                  |       x       |      x      |        x       |        x        |   None   |
 
     Arguments:
     X
@@ -87,7 +88,7 @@ def ale(
     impute_empty_cells
     ----
         A boolean indicating if empty cells created for 2-D ale plots should be imputed
-        (`True`) or treated as zero (`False`).
+        (`True`) or treated as missing (`False`).
     include_CI
     ----
         A boolean, if True the confidence interval of the effect is returned with
