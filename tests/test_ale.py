@@ -8,14 +8,16 @@ from sklearn.preprocessing import OneHotEncoder
 
 from PyALE._ALE_generic import ale
 
+
 def onehot_encode(feat):
     ohe = OneHotEncoder().fit(feat)
     col_names = ohe.categories_[0]
     feat_coded = pd.DataFrame(ohe.transform(feat).toarray())
     feat_coded.columns = col_names
     return feat_coded
-    
-def onehot_encode_custom(feat, groups=['A', 'C', 'B']):
+
+
+def onehot_encode_custom(feat, groups=["A", "C", "B"]):
     feat_coded = onehot_encode(feat)
     missing_feat = [x for x in groups if x not in feat_coded.columns]
     if missing_feat:
@@ -106,16 +108,16 @@ class Testale(unittest.TestCase):
             "The argument 'C' (confidence level) should be a value between 0 and 1"
         )
         self.assertEqual(c_ex.exception.args[0], c_ex_msg)
-        
+
         cat_ex_1_msg = (
-                    "Argument 'predictors' not given. With categorical/string "
-                    "features, a list of predictors (column names) should be provided."
-                )
+            "Argument 'predictors' not given. With categorical/string "
+            "features, a list of predictors (column names) should be provided."
+        )
         self.assertEqual(cat_ex_1.exception.args[0], cat_ex_1_msg)
         cat_ex_2_msg = (
-                    "Argument 'encode_fun' not given. With categorical/string "
-                    "features, an encoding function should be provided."
-                )
+            "Argument 'encode_fun' not given. With categorical/string "
+            "features, an encoding function should be provided."
+        )
         self.assertEqual(cat_ex_2.exception.args[0], cat_ex_2_msg)
 
     def test_auto_calls_1D_continuous(self):
@@ -208,7 +210,11 @@ class Testale(unittest.TestCase):
                 plot=False,
             )
             mock.assert_called_once_with(
-                X=self.X_cleaned, model=self.model, features=["x1", "x2"], grid_size=5,
+                X=self.X_cleaned,
+                model=self.model,
+                features=["x1", "x2"],
+                grid_size=5,
+                impute_empty_cells=True,
             )
 
     def test_1D_continuous_plot_called(self):
@@ -236,7 +242,7 @@ class Testale(unittest.TestCase):
                 plot=True,
             )
             mock.assert_called_once_with(result, X=self.X_cleaned, fig=None, ax=None)
-        
+
         with patch("PyALE._ALE_generic.plot_1D_discrete_eff") as mock:
             result = ale(
                 X=self.X,
